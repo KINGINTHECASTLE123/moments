@@ -1,21 +1,18 @@
-//
-//  ContentView.swift
-//  Moments
-//
-//  Created by Jacob Bisgaard on 13/03/2026.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showMain = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        if showMain {
+            HomeView()
+        } else {
+            LandingView {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showMain = true
+                }
+            }
         }
-        .padding()
     }
 }
 
