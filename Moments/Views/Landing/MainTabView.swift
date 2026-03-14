@@ -25,6 +25,10 @@ enum MomentsTab: Int, CaseIterable {
 struct MainTabView: View {
     @State private var selectedTab: MomentsTab = .games
 
+    init(initialTab: MomentsTab = .games) {
+        _selectedTab = State(initialValue: initialTab)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Content
@@ -68,5 +72,7 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView()
+    NavigationStack {
+        MainTabView()
+    }
 }

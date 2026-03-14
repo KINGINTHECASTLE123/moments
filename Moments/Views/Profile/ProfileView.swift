@@ -36,7 +36,9 @@ struct ProfileView: View {
                         .padding(.horizontal, 40)
 
                     // Edit profile button
-                    Button { } label: {
+                    NavigationLink {
+                        EditProfileView()
+                    } label: {
                         Text("EDIT PROFILE")
                             .font(.system(size: 9, weight: .light))
                             .tracking(3)
@@ -48,6 +50,7 @@ struct ProfileView: View {
                                     .stroke(MomentsStyle.border, lineWidth: 0.5)
                             )
                     }
+                    .buttonStyle(.plain)
                     .padding(.top, 4)
                 }
                 .padding(.top, 20)

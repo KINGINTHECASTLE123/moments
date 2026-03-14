@@ -71,7 +71,7 @@ struct PlaylistDetailView: View {
                         }
 
                         // Share
-                        Button { } label: {
+                        ShareLink(item: playlistShareItem) {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 16, weight: .light))
                                 .foregroundColor(MomentsStyle.primaryText)
@@ -136,6 +136,10 @@ struct PlaylistDetailView: View {
         } else if let webURL = URL(string: "https://open.spotify.com") {
             UIApplication.shared.open(webURL)
         }
+    }
+
+    private var playlistShareItem: String {
+        spotifyWebURL(from: playlist.spotifyURI)?.absoluteString ?? playlist.name
     }
 }
 
@@ -203,6 +207,14 @@ private func formatTrackDuration(_ ms: Int) -> String {
     let minutes = totalSeconds / 60
     let seconds = totalSeconds % 60
     return String(format: "%d:%02d", minutes, seconds)
+}
+
+private func spotifyWebURL(from uri: String) -> URL? {
+    let components = uri.split(separator: ":")
+    guard components.count == 3 else { return nil }
+    let kind = components[1]
+    let id = components[2]
+    return URL(string: "https://open.spotify.com/\(kind)/\(id)")
 }
 
 #Preview {

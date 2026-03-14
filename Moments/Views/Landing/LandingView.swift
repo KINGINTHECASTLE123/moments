@@ -2,7 +2,8 @@ import SwiftUI
 
 struct LandingView: View {
     @State private var showContent = false
-    var onContinue: () -> Void = {}
+    var onCreateAccount: () -> Void = {}
+    var onSignIn: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -32,7 +33,7 @@ struct LandingView: View {
                 // Buttons
                 VStack(spacing: 14) {
                     // Create profile
-                    Button(action: onContinue) {
+                    Button(action: onCreateAccount) {
                         Text("CREATE PROFILE")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
@@ -47,7 +48,7 @@ struct LandingView: View {
                     .animation(.easeOut(duration: 0.9).delay(0.8), value: showContent)
 
                     // Sign in
-                    Button(action: onContinue) {
+                    Button(action: onSignIn) {
                         Text("SIGN IN")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)

@@ -1,25 +1,5 @@
 import SwiftUI
 
-struct Game: Identifiable {
-    let id = UUID()
-    let number: Int
-    let name: String
-    let description: String
-    let tag: String
-}
-
-private let lightGames: [Game] = [
-    Game(number: 1, name: "Would You Rather", description: "Classic dilemmas that spark debate", tag: "Icebreaker"),
-    Game(number: 2, name: "Heads Up", description: "Guess the word on your forehead", tag: "Party"),
-    Game(number: 3, name: "Charades", description: "Act it out, no words allowed", tag: "Classic"),
-]
-
-private let deepGames: [Game] = [
-    Game(number: 4, name: "Late Night Conversations", description: "Questions that go deeper", tag: "Intimate"),
-    Game(number: 5, name: "Flirty & Fun", description: "Playful prompts for bold moments", tag: "Bold"),
-    Game(number: 6, name: "High Stakes", description: "Dares and challenges with consequences", tag: "Daring"),
-]
-
 struct GamesView: View {
     var body: some View {
         ScrollView {
@@ -38,6 +18,9 @@ struct GamesView: View {
             }
         }
         .background(MomentsStyle.background)
+        .navigationDestination(for: Game.self) { game in
+            GameDetailView(game: game)
+        }
     }
 }
 
@@ -55,7 +38,10 @@ struct GameSection: View {
                 .padding(.bottom, 14)
 
             ForEach(games) { game in
-                GameRow(game: game)
+                NavigationLink(value: game) {
+                    GameRow(game: game)
+                }
+                .buttonStyle(.plain)
 
                 if game.id != games.last?.id {
                     Rectangle()
@@ -102,5 +88,7 @@ struct GameRow: View {
 }
 
 #Preview {
-    GamesView()
+    NavigationStack {
+        GamesView()
+    }
 }

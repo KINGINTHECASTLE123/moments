@@ -66,11 +66,20 @@ private let samplePlaylists: [SpotifyPlaylist] = [
 // MARK: - Music View
 
 struct MusicView: View {
-    @State private var currentTrack: SpotifyTrack? = sampleTracks["latenight"]?.first
+    @State private var currentTrackID = sampleTracks["latenight"]?.first?.id
     @State private var isPlaying = false
     @State private var selectedMood: String? = nil
 
     private let moods = ["All", "Morning", "Evening", "Night"]
+
+    private var queue: [SpotifyTrack] {
+        samplePlaylists.flatMap(\.tracks)
+    }
+
+    private var currentTrack: SpotifyTrack? {
+        guard let currentTrackID else { return queue.first }
+        return queue.first(where: { $0.id == currentTrackID }) ?? queue.first
+    }
 
     private var filteredPlaylists: [SpotifyPlaylist] {
         guard let mood = selectedMood, mood != "All" else { return samplePlaylists }
@@ -95,9 +104,14 @@ struct MusicView: View {
 
                 // Now Playing
                 if let track = currentTrack {
-                    NowPlayingCard(track: track, isPlaying: $isPlaying)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 28)
+                    NowPlayingCard(
+                        track: track,
+                        isPlaying: $isPlaying,
+                        onPrevious: { cycleTrack(by: -1) },
+                        onNext: { cycleTrack(by: 1) }
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 28)
                 }
 
                 // Mood filter
@@ -202,6 +216,8 @@ struct SpotifyBadge: View {
 struct NowPlayingCard: View {
     let track: SpotifyTrack
     @Binding var isPlaying: Bool
+    let onPrevious: () -> Void
+    let onNext: () -> Void
     @State private var progress: Double = 0.35
 
     var body: some View {
@@ -265,7 +281,7 @@ struct NowPlayingCard: View {
 
                 // Playback controls
                 HStack(spacing: 40) {
-                    Button { } label: {
+                    Button(action: onPrevious) {
                         Image(systemName: "backward.end")
                             .font(.system(size: 18, weight: .light))
                             .foregroundColor(MomentsStyle.primaryText)
@@ -279,7 +295,7 @@ struct NowPlayingCard: View {
                             .foregroundColor(MomentsStyle.primaryText)
                     }
 
-                    Button { } label: {
+                    Button(action: onNext) {
                         Image(systemName: "forward.end")
                             .font(.system(size: 18, weight: .light))
                             .foregroundColor(MomentsStyle.primaryText)
@@ -352,6 +368,24 @@ private func formatDuration(_ ms: Int) -> String {
     let minutes = totalSeconds / 60
     let seconds = totalSeconds % 60
     return String(format: "%d:%02d", minutes, seconds)
+}
+
+private extension MusicView {
+    func cycleTrack(by offset: Int) {
+        guard !queue.isEmpty else { return }
+
+        let currentIndex: Int
+        if let currentTrackID,
+           let index = queue.firstIndex(where: { $0.id == currentTrackID }) {
+            currentIndex = index
+        } else {
+            currentIndex = 0
+        }
+
+        let nextIndex = (currentIndex + offset + queue.count) % queue.count
+        currentTrackID = queue[nextIndex].id
+        isPlaying = true
+    }
 }
 
 private func openSpotify(uri: String) {

@@ -1,16 +1,14 @@
 import SwiftUI
 
 enum HomeDestination: Hashable {
-    case games
-    case food
-    case music
-    case community
+    case mainTabs(MomentsTab)
     case profile
     case settings
 }
 
 struct HomeView: View {
     @State private var path = NavigationPath()
+    @State private var showProfile = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -18,7 +16,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     // Navbar
                     HomeNavBar(
-                        onProfile: { path.append(HomeDestination.profile) },
+                        onProfile: { showProfile = true },
                         onSettings: { path.append(HomeDestination.settings) }
                     )
                     .padding(.horizontal, 24)
@@ -35,7 +33,7 @@ struct HomeView: View {
                             badge: "6 games",
                             imageName: "GamesPhoto"
                         ) {
-                            path.append(HomeDestination.games)
+                            path.append(HomeDestination.mainTabs(.games))
                         }
 
                         // Two-column row: Food & Music
@@ -45,7 +43,7 @@ struct HomeView: View {
                                 subtitle: "Curated pairings",
                                 icon: "fork.knife"
                             ) {
-                                path.append(HomeDestination.food)
+                                path.append(HomeDestination.mainTabs(.food))
                             }
 
                             HomeSquareCard(
@@ -53,7 +51,7 @@ struct HomeView: View {
                                 subtitle: "Set the mood",
                                 icon: "music.note"
                             ) {
-                                path.append(HomeDestination.music)
+                                path.append(HomeDestination.mainTabs(.music))
                             }
                         }
 
@@ -64,7 +62,7 @@ struct HomeView: View {
                             icon: "person.2",
                             itemCount: "4 new posts"
                         ) {
-                            path.append(HomeDestination.community)
+                            path.append(HomeDestination.mainTabs(.community))
                         }
 
                         // Profile — compact card
@@ -87,15 +85,37 @@ struct HomeView: View {
             .navigationBarHidden(true)
             .navigationDestination(for: HomeDestination.self) { destination in
                 switch destination {
-                case .games: GamesView()
-                case .food: FoodView()
-                case .music: MusicView()
-                case .community: CommunityView()
+                case .mainTabs(let initialTab): MainTabView(initialTab: initialTab)
                 case .profile: ProfileView()
                 case .settings: SettingsView()
                 }
             }
         }
+        .fullScreenCover(isPresented: $showProfile) {
+            ProfileCoverView()
+        }
+    }
+}
+
+struct ProfileCoverView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ProfileView()
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .light))
+                                .foregroundColor(MomentsStyle.primaryText)
+                        }
+                    }
+                }
+        }
+        .transition(.move(edge: .leading))
     }
 }
 
