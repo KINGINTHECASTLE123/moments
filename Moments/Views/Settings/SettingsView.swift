@@ -18,12 +18,15 @@ enum SettingsDestination: Hashable {
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(UserViewModel.self) private var userViewModel
     @State private var notificationsEnabled = true
     @State private var momentReminders = true
     @State private var friendActivity = false
-    @State private var darkMode = false
+    @AppStorage("darkMode") private var darkMode = false
     @State private var haptics = true
     @State private var showSignOutConfirm = false
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         ScrollView {
@@ -140,7 +143,9 @@ struct SettingsView: View {
                 .padding(.top, 20)
 
                 // Delete account
-                Button { } label: {
+                Button {
+                    showDeleteConfirm = true
+                } label: {
                     Text("DELETE ACCOUNT")
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
@@ -274,9 +279,24 @@ struct SettingsView: View {
         }
         .alert("Sign Out", isPresented: $showSignOutConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Sign Out", role: .destructive) { }
+            Button("Sign Out", role: .destructive) {
+                authViewModel.signOut()
+            }
         } message: {
             Text("Are you sure you want to sign out?")
+        }
+        .alert("Delete Account", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete Account", role: .destructive) {
+                Task {
+                    guard case .signedIn(let uid) = authViewModel.authState else { return }
+                    await userViewModel.deleteUserData(uid: uid)
+                    guard userViewModel.errorMessage == nil else { return }
+                    await authViewModel.deleteAccount()
+                }
+            }
+        } message: {
+            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
         }
     }
 }
@@ -302,7 +322,7 @@ struct SettingsSection<Content: View>: View {
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 4)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
         }
     }
 }
@@ -364,7 +384,7 @@ struct SettingsToggleRow: View {
             Spacer()
 
             Toggle("", isOn: $isOn)
-                .tint(MomentsStyle.primaryText)
+                .tint(MomentsStyle.secondaryText)
                 .labelsHidden()
         }
         .padding(.vertical, 8)
@@ -437,5 +457,7 @@ struct SettingsDetailView: View {
 #Preview {
     NavigationStack {
         SettingsView()
+            .environment(AuthViewModel())
+            .environment(UserViewModel())
     }
 }

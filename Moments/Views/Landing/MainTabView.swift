@@ -66,7 +66,7 @@ struct MainTabView: View {
             }
             .padding(.top, 10)
             .padding(.bottom, 4)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
         }
     }
 }

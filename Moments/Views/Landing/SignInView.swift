@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct SignInView: View {
+    @Environment(AuthViewModel.self) private var authViewModel
     @State private var email = ""
     @State private var password = ""
     @FocusState private var focusedField: Field?
-    var onSignIn: () -> Void = {}
 
     private enum Field {
         case email, password
@@ -45,6 +45,14 @@ struct SignInView: View {
                         .focused($focusedField, equals: .password)
                     }
 
+                    // Error message
+                    if let error = authViewModel.errorMessage {
+                        Text(error)
+                            .font(MomentsStyle.systemLight(12))
+                            .foregroundColor(.red.opacity(0.8))
+                            .padding(.top, 16)
+                    }
+
                     // Forgot password
                     HStack {
                         Spacer()
@@ -69,16 +77,30 @@ struct SignInView: View {
                     .fill(MomentsStyle.border)
                     .frame(height: 0.5)
 
-                Button(action: onSignIn) {
-                    Text("SIGN IN")
-                        .font(.system(size: 10, weight: .light))
-                        .tracking(3)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(MomentsStyle.primaryText)
-                        .clipShape(Capsule())
+                Button {
+                    Task {
+                        await authViewModel.signIn(email: email, password: password)
+                    }
+                } label: {
+                    if authViewModel.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(MomentsStyle.primaryText)
+                            .clipShape(Capsule())
+                    } else {
+                        Text("SIGN IN")
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(MomentsStyle.primaryText)
+                            .clipShape(Capsule())
+                    }
                 }
+                .disabled(authViewModel.isLoading)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 32)

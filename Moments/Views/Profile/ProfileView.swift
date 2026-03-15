@@ -1,7 +1,12 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(UserViewModel.self) private var userViewModel
+
+    private var profile: UserProfile? {
+        userViewModel.currentUser
+    }
 
     var body: some View {
         ScrollView {
@@ -9,26 +14,24 @@ struct ProfileView: View {
                 // Header area
                 VStack(spacing: 16) {
                     // Avatar
-                    Circle()
-                        .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
-                        .frame(width: 90, height: 90)
-                        .overlay(
-                            Text("JB")
-                                .font(.system(size: 28, weight: .medium))
-                                .foregroundColor(MomentsStyle.secondaryText)
-                        )
+                    ProfileAvatarView(
+                        imageURL: profile?.profileImageURL,
+                        imageData: nil,
+                        initials: profile?.initials ?? "M",
+                        size: 90
+                    )
 
                     VStack(spacing: 4) {
-                        Text("Jacob Bisgaard")
+                        Text(profile?.fullName ?? "Moments User")
                             .font(MomentsStyle.georgiaItalic(26))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text("@jacobkbh")
+                        Text("@\(profile?.username ?? "moments")")
                             .font(MomentsStyle.systemLight(14))
                             .foregroundColor(MomentsStyle.secondaryText)
                     }
 
-                    Text("Hygge enthusiast. Copenhagen nights.\nGood food, better company.")
+                    Text(profile?.bio.isEmpty == false ? profile?.bio ?? "" : "Add a short bio to tell people who you are.")
                         .font(MomentsStyle.systemLight(14))
                         .foregroundColor(MomentsStyle.secondaryText)
                         .multilineTextAlignment(.center)
@@ -62,9 +65,9 @@ struct ProfileView: View {
                     .foregroundColor(MomentsStyle.border)
 
                 HStack(spacing: 0) {
-                    ProfileStat(value: "12", label: "Moments")
-                    ProfileStat(value: "48", label: "Friends")
-                    ProfileStat(value: "156", label: "Likes")
+                    ProfileStat(value: "\(profile?.momentsCount ?? 0)", label: "Moments")
+                    ProfileStat(value: "\(profile?.friendsCount ?? 0)", label: "Friends")
+                    ProfileStat(value: "\(profile?.likesCount ?? 0)", label: "Likes")
                 }
                 .padding(.vertical, 20)
 
@@ -80,7 +83,7 @@ struct ProfileView: View {
                         .foregroundColor(MomentsStyle.secondaryText)
 
                     FlowLayout(spacing: 8) {
-                        ForEach(["Wine Tasting", "Board Games", "Jazz", "Italian Food", "Cocktails", "Art", "Vinyl", "Late Nights"], id: \.self) { interest in
+                        ForEach(profile?.interests ?? [], id: \.self) { interest in
                             PillTag(label: interest)
                         }
                     }
@@ -154,7 +157,7 @@ struct ProfileView: View {
                         .frame(width: 28, height: 0.5)
                         .foregroundColor(MomentsStyle.border)
 
-                    Text("Member since 2025")
+                    Text(memberSinceText)
                         .font(MomentsStyle.georgiaItalic(12))
                         .foregroundColor(MomentsStyle.secondaryText)
                         .padding(.top, 8)
@@ -171,6 +174,11 @@ struct ProfileView: View {
             }
         }
         .background(MomentsStyle.background)
+        .refreshable {
+            if case .signedIn(let uid) = authViewModel.authState {
+                await userViewModel.fetchCurrentUser(uid: uid)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -179,6 +187,13 @@ struct ProfileView: View {
                     .foregroundColor(MomentsStyle.primaryText)
             }
         }
+    }
+
+    private var memberSinceText: String {
+        guard let createdAt = profile?.createdAt else {
+            return "Member since Moments"
+        }
+        return "Member since \(createdAt.formatted(.dateTime.year()))"
     }
 }
 
@@ -325,5 +340,48 @@ struct FlowLayout: Layout {
 #Preview {
     NavigationStack {
         ProfileView()
+            .environment(UserViewModel())
+    }
+}
+
+struct ProfileAvatarView: View {
+    let imageURL: String?
+    let imageData: Data?
+    let initials: String
+    let size: CGFloat
+
+    var body: some View {
+        Group {
+            if let imageData, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else if let imageURL, let url = URL(string: imageURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+    }
+
+    private var placeholder: some View {
+        Circle()
+            .fill(MomentsStyle.surfaceSecondary)
+            .overlay(
+                Text(initials)
+                    .font(.system(size: size * 0.31, weight: .medium))
+                    .foregroundColor(MomentsStyle.secondaryText)
+            )
     }
 }

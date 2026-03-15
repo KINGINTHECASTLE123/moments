@@ -6,7 +6,7 @@ struct HairlineCard<Content: View>: View {
     var body: some View {
         content
             .padding(16)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)

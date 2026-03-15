@@ -9,7 +9,7 @@ struct GameDetailView: View {
                 // Hero area
                 ZStack {
                     RoundedRectangle(cornerRadius: 0)
-                        .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
+                        .fill(MomentsStyle.surfaceSecondary)
                         .frame(height: 220)
 
                     VStack(spacing: 12) {

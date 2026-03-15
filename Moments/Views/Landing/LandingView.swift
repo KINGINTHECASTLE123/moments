@@ -1,16 +1,46 @@
 import SwiftUI
 
 struct LandingView: View {
+    @Environment(AppContentViewModel.self) private var appContentViewModel
     @State private var showContent = false
     var onCreateAccount: () -> Void = {}
     var onSignIn: () -> Void = {}
 
     var body: some View {
         ZStack {
+            RemoteStorageImageView(urlString: appContentViewModel.landingHeroImageURL) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.85),
+                                Color.black.opacity(0.45)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .aspectRatio(contentMode: .fill)
+            .ignoresSafeArea()
+
+            if appContentViewModel.landingHeroImageURL == nil {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.85),
+                                Color.black.opacity(0.45)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .ignoresSafeArea()
+            }
+
             // Full-bleed background photo
-            Image("LandingPhoto")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+            Color.clear
                 .ignoresSafeArea()
 
             // Dark overlay for legibility
@@ -67,6 +97,9 @@ struct LandingView: View {
                 .padding(.horizontal, 32)
                 .padding(.bottom, 60)
             }
+        }
+        .task {
+            await appContentViewModel.fetchContentIfNeeded()
         }
         .onAppear { showContent = true }
     }

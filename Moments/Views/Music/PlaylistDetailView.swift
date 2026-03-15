@@ -1,7 +1,14 @@
 import SwiftUI
 
 struct PlaylistDetailView: View {
-    let playlist: SpotifyPlaylist
+    @Environment(MusicViewModel.self) private var musicViewModel
+    let playlistID: String
+    @State private var tracks: [SpotifyTrackItem] = []
+    @State private var isLoading = true
+
+    private var playlist: SpotifyPlaylistItem? {
+        musicViewModel.playlists.first(where: { $0.id == playlistID })
+    }
 
     var body: some View {
         ScrollView {
@@ -9,57 +16,46 @@ struct PlaylistDetailView: View {
                 // Playlist header
                 VStack(spacing: 16) {
                     // Artwork
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(playlist.artworkColor)
+                    if let artworkURL = playlist?.artworkURL {
+                        AsyncImage(url: artworkURL) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            artworkPlaceholder
+                        }
                         .frame(width: 200, height: 200)
-                        .overlay(
-                            VStack(spacing: 8) {
-                                Image(systemName: "music.note.list")
-                                    .font(.system(size: 36, weight: .light))
-                                    .foregroundColor(.white.opacity(0.4))
-
-                                Text(playlist.mood.uppercased())
-                                    .font(.system(size: 9, weight: .light))
-                                    .tracking(3)
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                        )
-
-                    Text(playlist.name)
-                        .font(MomentsStyle.georgiaItalic(24))
-                        .foregroundColor(MomentsStyle.primaryText)
-
-                    Text(playlist.description)
-                        .font(MomentsStyle.systemLight(14))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-
-                    HStack(spacing: 16) {
-                        Text("\(playlist.songCount) songs")
-                            .font(.system(size: 11, weight: .light))
-                            .foregroundColor(MomentsStyle.secondaryText)
-
-                        Circle()
-                            .frame(width: 3, height: 3)
-                            .foregroundColor(MomentsStyle.border)
-
-                        Text(playlist.mood)
-                            .font(.system(size: 11, weight: .light))
-                            .foregroundColor(MomentsStyle.secondaryText)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        artworkPlaceholder
                     }
 
-                    // Action buttons
-                    HStack(spacing: 14) {
-                        // Open in Spotify (primary)
+                    if let playlist {
+                        Text(playlist.name)
+                            .font(MomentsStyle.georgiaItalic(24))
+                            .foregroundColor(MomentsStyle.primaryText)
+
+                        if let description = playlist.description, !description.isEmpty {
+                            Text(description)
+                                .font(MomentsStyle.systemLight(14))
+                                .foregroundColor(MomentsStyle.secondaryText)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+
+                        Text("\(playlist.trackCount) songs")
+                            .font(.system(size: 11, weight: .light))
+                            .foregroundColor(MomentsStyle.secondaryText)
+
+                        // Play button
                         Button {
-                            openSpotifyURI(playlist.spotifyURI)
+                            musicViewModel.play(uri: playlist.uri)
                         } label: {
                             HStack(spacing: 6) {
                                 Circle()
                                     .fill(Color(red: 0.12, green: 0.84, blue: 0.38))
                                     .frame(width: 6, height: 6)
-                                Text("PLAY ON SPOTIFY")
+                                Text("PLAY")
                                     .font(.system(size: 10, weight: .light))
                                     .tracking(2)
                             }
@@ -69,20 +65,8 @@ struct PlaylistDetailView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                         }
-
-                        // Share
-                        ShareLink(item: playlistShareItem) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16, weight: .light))
-                                .foregroundColor(MomentsStyle.primaryText)
-                                .frame(width: 44, height: 44)
-                                .overlay(
-                                    Circle()
-                                        .stroke(MomentsStyle.border, lineWidth: 0.5)
-                                )
-                        }
+                        .padding(.top, 4)
                     }
-                    .padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 16)
@@ -102,16 +86,39 @@ struct PlaylistDetailView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 14)
 
-                // Tracks
-                ForEach(Array(playlist.tracks.enumerated()), id: \.element.id) { index, track in
-                    TrackRow(track: track, index: index + 1)
+                if isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    .padding(.top, 20)
+                } else if let error = musicViewModel.errorMessage, tracks.isEmpty {
+                    Text(error)
+                        .font(MomentsStyle.systemLight(13))
+                        .foregroundColor(.red.opacity(0.8))
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                } else if tracks.isEmpty {
+                    Text("No songs available in this playlist.")
+                        .font(MomentsStyle.systemLight(13))
+                        .foregroundColor(MomentsStyle.secondaryText)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                } else {
+                    // Tracks
+                    ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
+                        TrackRow(track: track, index: index + 1) {
+                            musicViewModel.play(uri: track.uri)
+                        }
 
-                    if track.id != playlist.tracks.last?.id {
-                        Rectangle()
-                            .frame(height: 0.5)
-                            .foregroundColor(MomentsStyle.border)
-                            .padding(.leading, 62)
-                            .padding(.trailing, 24)
+                        if track.id != tracks.last?.id {
+                            Rectangle()
+                                .frame(height: 0.5)
+                                .foregroundColor(MomentsStyle.border)
+                                .padding(.leading, 62)
+                                .padding(.trailing, 24)
+                        }
                     }
                 }
 
@@ -122,37 +129,40 @@ struct PlaylistDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(playlist.name)
+                Text(playlist?.name ?? "Playlist")
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
         }
-    }
-
-    private func openSpotifyURI(_ uri: String) {
-        guard let url = URL(string: uri) else { return }
-        if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url)
-        } else if let webURL = URL(string: "https://open.spotify.com") {
-            UIApplication.shared.open(webURL)
+        .task(id: playlistID) {
+            print("PlaylistDetailView loading tracks for playlistID: \(playlistID)")
+            tracks = await musicViewModel.fetchTracks(playlistID: playlistID)
+            print("PlaylistDetailView loaded \(tracks.count) tracks for playlistID: \(playlistID)")
+            isLoading = false
         }
     }
 
-    private var playlistShareItem: String {
-        spotifyWebURL(from: playlist.spotifyURI)?.absoluteString ?? playlist.name
+    private var artworkPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(MomentsStyle.surfaceSecondary)
+            .frame(width: 200, height: 200)
+            .overlay(
+                Image(systemName: "music.note.list")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundColor(MomentsStyle.inactive)
+            )
     }
 }
 
 // MARK: - Track Row
 
 struct TrackRow: View {
-    let track: SpotifyTrack
+    let track: SpotifyTrackItem
     let index: Int
+    let onTap: () -> Void
 
     var body: some View {
-        Button {
-            openTrack()
-        } label: {
+        Button(action: onTap) {
             HStack(spacing: 14) {
                 // Track number
                 Text("\(index)")
@@ -161,24 +171,44 @@ struct TrackRow: View {
                     .frame(width: 24, alignment: .center)
 
                 // Track artwork
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(track.artworkColor)
+                if let artworkURL = track.artworkURL {
+                    AsyncImage(url: artworkURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(MomentsStyle.surfaceSecondary)
+                            .overlay(
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 12, weight: .light))
+                                    .foregroundColor(MomentsStyle.inactive)
+                            )
+                    }
                     .frame(width: 40, height: 40)
-                    .overlay(
-                        Image(systemName: "music.note")
-                            .font(.system(size: 12, weight: .light))
-                            .foregroundColor(.white.opacity(0.5))
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                } else {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(MomentsStyle.surfaceSecondary)
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "music.note")
+                                .font(.system(size: 12, weight: .light))
+                                .foregroundColor(MomentsStyle.inactive)
+                        )
+                }
 
                 // Track info
                 VStack(alignment: .leading, spacing: 2) {
                     Text(track.name)
                         .font(MomentsStyle.systemRegular(14))
                         .foregroundColor(MomentsStyle.primaryText)
+                        .lineLimit(1)
 
-                    Text(track.artist)
+                    Text(track.artistName)
                         .font(MomentsStyle.systemLight(12))
                         .foregroundColor(MomentsStyle.secondaryText)
+                        .lineLimit(1)
                 }
 
                 Spacer()
@@ -193,13 +223,6 @@ struct TrackRow: View {
         }
         .buttonStyle(.plain)
     }
-
-    private func openTrack() {
-        guard let url = URL(string: track.spotifyURI) else { return }
-        if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url)
-        }
-    }
 }
 
 private func formatTrackDuration(_ ms: Int) -> String {
@@ -209,28 +232,9 @@ private func formatTrackDuration(_ ms: Int) -> String {
     return String(format: "%d:%02d", minutes, seconds)
 }
 
-private func spotifyWebURL(from uri: String) -> URL? {
-    let components = uri.split(separator: ":")
-    guard components.count == 3 else { return nil }
-    let kind = components[1]
-    let id = components[2]
-    return URL(string: "https://open.spotify.com/\(kind)/\(id)")
-}
-
 #Preview {
     NavigationStack {
-        PlaylistDetailView(playlist: SpotifyPlaylist(
-            id: "p1",
-            name: "Late Night Cocktails",
-            description: "Smooth jazz and lo-fi for wine nights",
-            songCount: 24,
-            spotifyURI: "spotify:playlist:placeholder1",
-            tracks: [
-                SpotifyTrack(id: "1", name: "Midnight in Copenhagen", artist: "The Nordic Ensemble", album: "Northern Lights", durationMs: 234000, spotifyURI: "spotify:track:placeholder1", artworkColor: Color(red: 0.22, green: 0.20, blue: 0.28)),
-                SpotifyTrack(id: "2", name: "Candlelight", artist: "Jazzanova", album: "Of All the Things", durationMs: 312000, spotifyURI: "spotify:track:placeholder2", artworkColor: Color(red: 0.28, green: 0.22, blue: 0.20)),
-            ],
-            mood: "Evening",
-            artworkColor: Color(red: 0.22, green: 0.20, blue: 0.28)
-        ))
+        PlaylistDetailView(playlistID: "test")
+            .environment(MusicViewModel())
     }
 }

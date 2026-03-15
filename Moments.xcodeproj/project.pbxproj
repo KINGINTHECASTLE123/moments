@@ -6,13 +6,33 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		382CCFF72F65BD2400B002E2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 382CCFF62F65BD2400B002E2 /* FirebaseAuth */; };
+		382CCFF92F65BD2C00B002E2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 382CCFF82F65BD2C00B002E2 /* FirebaseFirestore */; };
+		382CCFFB2F65BD3800B002E2 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 382CCFFA2F65BD3800B002E2 /* FirebaseStorage */; };
+		382CEB022F66110F00B002E2 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 382CEB012F66110F00B002E2 /* SpotifyiOS */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		382983072F64C93A00A45D2A /* Moments.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Moments.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		382CEB0A2F66141E00B002E2 /* Exceptions for "Moments" folder in "Moments" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 382983062F64C93A00A45D2A /* Moments */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		382983092F64C93A00A45D2A /* Moments */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				382CEB0A2F66141E00B002E2 /* Exceptions for "Moments" folder in "Moments" target */,
+			);
 			path = Moments;
 			sourceTree = "<group>";
 		};
@@ -23,6 +43,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				382CCFF72F65BD2400B002E2 /* FirebaseAuth in Frameworks */,
+				382CCFF92F65BD2C00B002E2 /* FirebaseFirestore in Frameworks */,
+				382CCFFB2F65BD3800B002E2 /* FirebaseStorage in Frameworks */,
+				382CEB022F66110F00B002E2 /* SpotifyiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				382983092F64C93A00A45D2A /* Moments */,
+				382CCFF52F65BD2400B002E2 /* Frameworks */,
 				382983082F64C93A00A45D2A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +68,13 @@
 				382983072F64C93A00A45D2A /* Moments.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		382CCFF52F65BD2400B002E2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +97,10 @@
 			);
 			name = Moments;
 			packageProductDependencies = (
+				382CCFF62F65BD2400B002E2 /* FirebaseAuth */,
+				382CCFF82F65BD2C00B002E2 /* FirebaseFirestore */,
+				382CCFFA2F65BD3800B002E2 /* FirebaseStorage */,
+				382CEB012F66110F00B002E2 /* SpotifyiOS */,
 			);
 			productName = Moments;
 			productReference = 382983072F64C93A00A45D2A /* Moments.app */;
@@ -94,6 +130,10 @@
 			);
 			mainGroup = 382982FE2F64C93A00A45D2A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				382CCFF42F65BB3500B002E2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				382CEB002F66110F00B002E2 /* XCRemoteSwiftPackageReference "ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 382983082F64C93A00A45D2A /* Products */;
 			projectDirPath = "";
@@ -251,8 +291,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QF9DQHB932;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Moments/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -282,8 +324,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QF9DQHB932;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Moments/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -328,6 +372,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		382CCFF42F65BB3500B002E2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.10.0;
+			};
+		};
+		382CEB002F66110F00B002E2 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/spotify/ios-sdk";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		382CCFF62F65BD2400B002E2 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 382CCFF42F65BB3500B002E2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		382CCFF82F65BD2C00B002E2 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 382CCFF42F65BB3500B002E2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		382CCFFA2F65BD3800B002E2 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 382CCFF42F65BB3500B002E2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		382CEB012F66110F00B002E2 /* SpotifyiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 382CEB002F66110F00B002E2 /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			productName = SpotifyiOS;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 382982FF2F64C93A00A45D2A /* Project object */;
 }

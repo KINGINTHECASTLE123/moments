@@ -7,6 +7,8 @@ enum HomeDestination: Hashable {
 }
 
 struct HomeView: View {
+    @Environment(AppContentViewModel.self) private var appContentViewModel
+    @Environment(UserViewModel.self) private var userViewModel
     @State private var path = NavigationPath()
     @State private var showProfile = false
 
@@ -16,6 +18,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     // Navbar
                     HomeNavBar(
+                        initials: userViewModel.currentUser?.initials ?? "M",
                         onProfile: { showProfile = true },
                         onSettings: { path.append(HomeDestination.settings) }
                     )
@@ -31,7 +34,7 @@ struct HomeView: View {
                             subtitle: "Break the ice, spark the night",
                             icon: "dice",
                             badge: "6 games",
-                            imageName: "GamesPhoto"
+                            imageURL: appContentViewModel.homeGamesHeroImageURL
                         ) {
                             path.append(HomeDestination.mainTabs(.games))
                         }
@@ -94,6 +97,9 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showProfile) {
             ProfileCoverView()
         }
+        .task {
+            await appContentViewModel.fetchContentIfNeeded()
+        }
     }
 }
 
@@ -122,6 +128,7 @@ struct ProfileCoverView: View {
 // MARK: - Navbar
 
 struct HomeNavBar: View {
+    let initials: String
     var onProfile: () -> Void
     var onSettings: () -> Void
 
@@ -130,10 +137,10 @@ struct HomeNavBar: View {
             // Profile avatar
             Button(action: onProfile) {
                 Circle()
-                    .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
+                    .fill(MomentsStyle.surfaceSecondary)
                     .frame(width: 34, height: 34)
                     .overlay(
-                        Text("J")
+                        Text(initials)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(MomentsStyle.secondaryText)
                     )
@@ -165,6 +172,7 @@ struct HomeHeroCard: View {
     let subtitle: String
     let icon: String
     var badge: String? = nil
+    var imageURL: String? = nil
     var imageName: String? = nil
     var action: () -> Void
 
@@ -173,7 +181,20 @@ struct HomeHeroCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Image area
                 Group {
-                    if let imageName {
+                    if imageURL != nil {
+                        RemoteStorageImageView(urlString: imageURL) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(MomentsStyle.surfaceSecondary)
+                                .overlay(
+                                    Image(systemName: icon)
+                                        .font(.system(size: 36, weight: .light))
+                                        .foregroundColor(MomentsStyle.inactive)
+                                )
+                        }
+                        .frame(height: 200)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if let imageName {
                         Image(imageName)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -182,7 +203,7 @@ struct HomeHeroCard: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else {
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
+                            .fill(MomentsStyle.surfaceSecondary)
                             .frame(height: 200)
                             .overlay(
                                 Image(systemName: icon)
@@ -223,7 +244,7 @@ struct HomeHeroCard: View {
                 .padding(.top, 14)
             }
             .padding(20)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)
@@ -263,7 +284,7 @@ struct HomeSquareCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 150)
             .padding(18)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)
@@ -309,7 +330,7 @@ struct HomeWideCard: View {
                     .foregroundColor(MomentsStyle.inactive)
             }
             .padding(20)
-            .background(Color.white)
+            .background(MomentsStyle.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)

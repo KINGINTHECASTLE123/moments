@@ -1,11 +1,16 @@
+import PhotosUI
 import SwiftUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var fullName = "Jacob Bisgaard"
-    @State private var username = "jacobkbh"
-    @State private var bio = "Hygge enthusiast. Copenhagen nights.\nGood food, better company."
-    @State private var selectedInterests: Set<String> = ["Wine Tasting", "Board Games", "Jazz", "Italian Food", "Cocktails", "Art", "Vinyl", "Late Nights"]
+    @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(UserViewModel.self) private var userViewModel
+    @State private var fullName = ""
+    @State private var username = ""
+    @State private var bio = ""
+    @State private var selectedInterests: Set<String> = []
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var profileImageData: Data?
 
     private let allInterests = [
         "Wine Tasting", "Board Games", "Jazz", "Italian Food",
@@ -14,6 +19,15 @@ struct EditProfileView: View {
         "Film", "Coffee", "Reading", "Design"
     ]
 
+    private var currentProfile: UserProfile? {
+        userViewModel.currentUser
+    }
+
+    private var isSaveDisabled: Bool {
+        fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -21,16 +35,14 @@ struct EditProfileView: View {
                     // Avatar
                     HStack {
                         Spacer()
-                        Button { } label: {
+                        PhotosPicker(selection: $selectedPhoto, matching: .images) {
                             ZStack {
-                                Circle()
-                                    .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
-                                    .frame(width: 100, height: 100)
-                                    .overlay(
-                                        Text("JB")
-                                            .font(.system(size: 28, weight: .medium))
-                                            .foregroundColor(MomentsStyle.secondaryText)
-                                    )
+                                ProfileAvatarView(
+                                    imageURL: currentProfile?.profileImageURL,
+                                    imageData: profileImageData,
+                                    initials: currentProfile?.initials ?? "M",
+                                    size: 100
+                                )
 
                                 Circle()
                                     .fill(MomentsStyle.primaryText)
@@ -125,7 +137,20 @@ struct EditProfileView: View {
                     .frame(height: 0.5)
 
                 Button {
-                    dismiss()
+                    guard case .signedIn(let uid) = authViewModel.authState else { return }
+                    Task {
+                        await userViewModel.updateProfile(
+                            uid: uid,
+                            fullName: fullName.trimmingCharacters(in: .whitespacesAndNewlines),
+                            username: username.trimmingCharacters(in: .whitespacesAndNewlines),
+                            bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
+                            interests: Array(selectedInterests).sorted(),
+                            profileImageData: profileImageData
+                        )
+                        if userViewModel.errorMessage == nil {
+                            dismiss()
+                        }
+                    }
                 } label: {
                     Text("SAVE CHANGES")
                         .font(.system(size: 10, weight: .light))
@@ -136,6 +161,8 @@ struct EditProfileView: View {
                         .background(MomentsStyle.primaryText)
                         .clipShape(Capsule())
                 }
+                .disabled(isSaveDisabled)
+                .opacity(isSaveDisabled ? 0.6 : 1)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 32)
@@ -158,11 +185,27 @@ struct EditProfileView: View {
                 }
             }
         }
+        .task {
+            guard let profile = currentProfile else { return }
+            fullName = profile.fullName
+            username = profile.username
+            bio = profile.bio
+            selectedInterests = Set(profile.interests)
+        }
+        .onChange(of: selectedPhoto) { _, newValue in
+            Task {
+                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                    profileImageData = data
+                }
+            }
+        }
     }
 }
 
 #Preview {
     NavigationStack {
         EditProfileView()
+            .environment(AuthViewModel())
+            .environment(UserViewModel())
     }
 }

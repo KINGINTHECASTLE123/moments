@@ -1,19 +1,21 @@
-import SwiftUI
 import PhotosUI
+import SwiftUI
 
 struct CreatePostView: View {
-    var store: CommunityStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(UserViewModel.self) private var userViewModel
+    @Environment(CommunityViewModel.self) private var communityViewModel
     @State private var bodyText = ""
-    @State private var selectedTag: String? = nil
-    @State private var selectedPhoto: PhotosPickerItem? = nil
-    @State private var photoData: Data? = nil
+    @State private var selectedTag: String?
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var photoData: Data?
     @FocusState private var isBodyFocused: Bool
 
     private let tags = ["Games", "Food", "Music", "Moment"]
 
     private var canPost: Bool {
-        !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !communityViewModel.isCreatingPost
     }
 
     var body: some View {
@@ -21,19 +23,18 @@ struct CreatePostView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        // User row
                         HStack(spacing: 12) {
                             Circle()
-                                .fill(Color(red: 0.96, green: 0.955, blue: 0.945))
+                                .fill(MomentsStyle.surfaceSecondary)
                                 .frame(width: 40, height: 40)
                                 .overlay(
-                                    Text("J")
+                                    Text(userViewModel.currentUser?.firstInitial ?? "M")
                                         .font(.system(size: 15, weight: .medium))
                                         .foregroundColor(MomentsStyle.secondaryText)
                                 )
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("jacobkbh")
+                                Text(userViewModel.currentUser?.username ?? "moments")
                                     .font(MomentsStyle.systemMedium(15))
                                     .foregroundColor(MomentsStyle.primaryText)
 
@@ -43,14 +44,12 @@ struct CreatePostView: View {
                             }
                         }
 
-                        // Text input
                         TextField("Share a moment...", text: $bodyText, axis: .vertical)
                             .font(MomentsStyle.systemLight(16))
                             .foregroundColor(MomentsStyle.primaryText)
                             .lineLimit(3...12)
                             .focused($isBodyFocused)
 
-                        // Photo preview
                         if let photoData, let uiImage = UIImage(data: photoData) {
                             ZStack(alignment: .topTrailing) {
                                 Image(uiImage: uiImage)
@@ -72,7 +71,6 @@ struct CreatePostView: View {
                             }
                         }
 
-                        // Tags
                         VStack(alignment: .leading, spacing: 10) {
                             Text("TAG")
                                 .font(.system(size: 9, weight: .light))
@@ -82,11 +80,7 @@ struct CreatePostView: View {
                             HStack(spacing: 8) {
                                 ForEach(tags, id: \.self) { tag in
                                     Button {
-                                        if selectedTag == tag {
-                                            selectedTag = nil
-                                        } else {
-                                            selectedTag = tag
-                                        }
+                                        selectedTag = selectedTag == tag ? nil : tag
                                     } label: {
                                         PillTag(label: tag, filled: selectedTag == tag)
                                     }
@@ -94,19 +88,23 @@ struct CreatePostView: View {
                                 }
                             }
                         }
+
+                        if let errorMessage = communityViewModel.errorMessage {
+                            Text(errorMessage)
+                                .font(MomentsStyle.systemLight(12))
+                                .foregroundColor(.red.opacity(0.8))
+                        }
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 24)
                 }
 
-                // Bottom toolbar
                 VStack(spacing: 0) {
                     Rectangle()
                         .frame(height: 0.5)
                         .foregroundColor(MomentsStyle.border)
 
                     HStack(spacing: 16) {
-                        // Photo picker
                         PhotosPicker(selection: $selectedPhoto, matching: .images) {
                             Image(systemName: "photo")
                                 .font(.system(size: 18, weight: .light))
@@ -123,7 +121,7 @@ struct CreatePostView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(Color.white)
+                    .background(MomentsStyle.cardBackground)
                 }
             }
             .background(MomentsStyle.background)
@@ -135,6 +133,7 @@ struct CreatePostView: View {
                     }
                     .font(MomentsStyle.systemLight(15))
                     .foregroundColor(MomentsStyle.secondaryText)
+                    .disabled(communityViewModel.isCreatingPost)
                 }
 
                 ToolbarItem(placement: .principal) {
@@ -145,18 +144,34 @@ struct CreatePostView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        store.addPost(
-                            username: "jacobkbh",
-                            body: bodyText.trimmingCharacters(in: .whitespacesAndNewlines),
-                            imageName: photoData != nil ? "user_photo" : nil,
-                            tag: selectedTag
-                        )
-                        dismiss()
+                        guard
+                            case .signedIn(let uid) = authViewModel.authState,
+                            let currentUser = userViewModel.currentUser
+                        else { return }
+
+                        Task {
+                            await communityViewModel.addPost(
+                                authorUID: uid,
+                                authorUsername: currentUser.username,
+                                authorProfileImageURL: currentUser.profileImageURL,
+                                body: bodyText.trimmingCharacters(in: .whitespacesAndNewlines),
+                                tag: selectedTag,
+                                imageData: photoData
+                            )
+                            if communityViewModel.errorMessage == nil {
+                                dismiss()
+                            }
+                        }
                     } label: {
-                        Text("POST")
-                            .font(.system(size: 11, weight: .medium))
-                            .tracking(2)
-                            .foregroundColor(canPost ? MomentsStyle.primaryText : MomentsStyle.inactive)
+                        if communityViewModel.isCreatingPost {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("POST")
+                                .font(.system(size: 11, weight: .medium))
+                                .tracking(2)
+                                .foregroundColor(canPost ? MomentsStyle.primaryText : MomentsStyle.inactive)
+                        }
                     }
                     .disabled(!canPost)
                 }
@@ -174,5 +189,8 @@ struct CreatePostView: View {
 }
 
 #Preview {
-    CreatePostView(store: CommunityStore())
+    CreatePostView()
+        .environment(AuthViewModel())
+        .environment(UserViewModel())
+        .environment(CommunityViewModel())
 }
