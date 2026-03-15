@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct FirestorePost: Codable, Identifiable {
+struct FirestorePost: Codable, Identifiable, Sendable {
     @DocumentID var id: String?
     var authorUID: String
     var authorUsername: String
@@ -23,7 +23,7 @@ struct FirestorePost: Codable, Identifiable {
     }
 }
 
-struct FirestoreComment: Codable, Identifiable {
+struct FirestoreComment: Codable, Identifiable, Sendable {
     @DocumentID var id: String?
     var authorUID: String
     var authorUsername: String

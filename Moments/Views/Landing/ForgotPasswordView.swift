@@ -31,6 +31,13 @@ struct ForgotPasswordView: View {
                             text: $email,
                             keyboardType: .emailAddress
                         )
+
+                        if let error = authViewModel.errorMessage {
+                            Text(error)
+                                .font(MomentsStyle.systemLight(12))
+                                .foregroundColor(.red.opacity(0.8))
+                                .padding(.top, 16)
+                        }
                     } else {
                         // Confirmation
                         VStack(spacing: 20) {
@@ -66,19 +73,34 @@ struct ForgotPasswordView: View {
 
                 if !showConfirmation {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showConfirmation = true
+                        Task {
+                            let success = await authViewModel.sendPasswordReset(email: email)
+                            if success {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showConfirmation = true
+                                }
+                            }
                         }
                     } label: {
-                        Text("SEND RESET LINK")
-                            .font(.system(size: 10, weight: .light))
-                            .tracking(3)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(MomentsStyle.primaryText)
-                            .clipShape(Capsule())
+                        if authViewModel.isLoading {
+                            ProgressView()
+                                .tint(MomentsStyle.background)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(MomentsStyle.primaryText)
+                                .clipShape(Capsule())
+                        } else {
+                            Text("SEND RESET LINK")
+                                .font(.system(size: 10, weight: .light))
+                                .tracking(3)
+                                .foregroundColor(MomentsStyle.background)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(MomentsStyle.primaryText)
+                                .clipShape(Capsule())
+                        }
                     }
+                    .disabled(authViewModel.isLoading || email.isEmpty)
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     .padding(.bottom, 32)
@@ -89,7 +111,7 @@ struct ForgotPasswordView: View {
                         Text("BACK TO SIGN IN")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
-                            .foregroundColor(.white)
+                            .foregroundColor(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)

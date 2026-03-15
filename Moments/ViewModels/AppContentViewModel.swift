@@ -12,8 +12,8 @@ final class AppContentViewModel {
     private let service: AppContentService
     private var hasLoaded = false
 
-    init(service: AppContentService = AppContentService()) {
-        self.service = service
+    init(service: AppContentService? = nil) {
+        self.service = service ?? AppContentService()
     }
 
     func fetchContentIfNeeded() async {
@@ -35,6 +35,9 @@ final class AppContentViewModel {
             landingHeroImageURL = landing.heroImageURL
             homeGamesHeroImageURL = home.gamesHeroImageURL
             hasLoaded = true
+
+            // Preload hero images into cache
+            await ImageCache.shared.preload(urls: [landing.heroImageURL, home.gamesHeroImageURL])
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -122,7 +122,7 @@ struct MusicView: View {
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(MomentsStyle.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(MomentsStyle.primaryText)
@@ -183,11 +183,7 @@ struct NowPlayingCard: View {
             VStack(spacing: 16) {
                 // Album art
                 if let artworkURL = playerState.artworkURL {
-                    AsyncImage(url: artworkURL) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
+                    RemoteStorageImageView(urlString: artworkURL.absoluteString) {
                         artworkPlaceholder
                     }
                     .frame(maxWidth: .infinity)
@@ -282,32 +278,17 @@ struct PlaylistRow: View {
     var body: some View {
         HStack(spacing: 14) {
             // Artwork
-            if let artworkURL = playlist.artworkURL {
-                AsyncImage(url: artworkURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(MomentsStyle.surfaceSecondary)
-                        .overlay(
-                            Image(systemName: "music.note.list")
-                                .font(.system(size: 16, weight: .light))
-                                .foregroundColor(MomentsStyle.inactive)
-                        )
-                }
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-            } else {
+            RemoteStorageImageView(urlString: playlist.artworkURL?.absoluteString) {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(MomentsStyle.surfaceSecondary)
-                    .frame(width: 56, height: 56)
                     .overlay(
                         Image(systemName: "music.note.list")
                             .font(.system(size: 16, weight: .light))
                             .foregroundColor(MomentsStyle.inactive)
                     )
             }
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(playlist.name)

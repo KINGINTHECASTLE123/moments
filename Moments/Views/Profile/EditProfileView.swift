@@ -12,12 +12,7 @@ struct EditProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var profileImageData: Data?
 
-    private let allInterests = [
-        "Wine Tasting", "Board Games", "Jazz", "Italian Food",
-        "Cocktails", "Art", "Vinyl", "Late Nights",
-        "Cooking", "Travel", "Photography", "Fitness",
-        "Film", "Coffee", "Reading", "Design"
-    ]
+    private let allInterests = AppConstants.allInterests
 
     private var currentProfile: UserProfile? {
         userViewModel.currentUser
@@ -50,7 +45,7 @@ struct EditProfileView: View {
                                     .overlay(
                                         Image(systemName: "camera")
                                             .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(MomentsStyle.background)
                                     )
                                     .offset(x: 36, y: 36)
                             }
@@ -155,7 +150,7 @@ struct EditProfileView: View {
                     Text("SAVE CHANGES")
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
-                        .foregroundColor(.white)
+                        .foregroundColor(MomentsStyle.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(MomentsStyle.primaryText)

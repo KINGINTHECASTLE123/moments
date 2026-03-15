@@ -84,7 +84,7 @@ struct SignInView: View {
                 } label: {
                     if authViewModel.isLoading {
                         ProgressView()
-                            .tint(.white)
+                            .tint(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)
@@ -93,7 +93,7 @@ struct SignInView: View {
                         Text("SIGN IN")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
-                            .foregroundColor(.white)
+                            .foregroundColor(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)
@@ -109,6 +109,7 @@ struct SignInView: View {
         }
         .background(MomentsStyle.background)
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
     }
 }
 

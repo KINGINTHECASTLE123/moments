@@ -1,6 +1,6 @@
 import Foundation
 
-@Observable
+@Observable @MainActor
 final class UserViewModel {
     private let userService: UserServiceProtocol
     private let storageService: StorageServiceProtocol
@@ -10,14 +10,13 @@ final class UserViewModel {
     var errorMessage: String?
 
     init(
-        userService: UserServiceProtocol = UserService(),
-        storageService: StorageServiceProtocol = StorageService()
+        userService: (any UserServiceProtocol)? = nil,
+        storageService: (any StorageServiceProtocol)? = nil
     ) {
-        self.userService = userService
-        self.storageService = storageService
+        self.userService = userService ?? UserService()
+        self.storageService = storageService ?? StorageService()
     }
 
-    @MainActor
     func fetchCurrentUser(uid: String) async {
         isLoading = true
         do {
@@ -28,7 +27,6 @@ final class UserViewModel {
         isLoading = false
     }
 
-    @MainActor
     func createProfile(
         uid: String,
         fullName: String,
@@ -55,7 +53,8 @@ final class UserViewModel {
         )
         do {
             if let profileImageData {
-                let profileImageURL = try await storageService.uploadProfileImage(uid: uid, imageData: profileImageData)
+                let compressed = ImageCompressor.compress(data: profileImageData, maxDimension: 600) ?? profileImageData
+                let profileImageURL = try await storageService.uploadProfileImage(uid: uid, imageData: compressed)
                 profile.profileImageURL = profileImageURL
             }
             try await userService.createUser(profile, uid: uid)
@@ -66,7 +65,6 @@ final class UserViewModel {
         isLoading = false
     }
 
-    @MainActor
     func updateProfile(
         uid: String,
         fullName: String,
@@ -85,7 +83,8 @@ final class UserViewModel {
                 "interests": interests,
             ]
             if let profileImageData {
-                let profileImageURL = try await storageService.uploadProfileImage(uid: uid, imageData: profileImageData)
+                let compressed = ImageCompressor.compress(data: profileImageData, maxDimension: 600) ?? profileImageData
+                let profileImageURL = try await storageService.uploadProfileImage(uid: uid, imageData: compressed)
                 data["profileImageURL"] = profileImageURL
                 currentUser?.profileImageURL = profileImageURL
             }
@@ -100,13 +99,21 @@ final class UserViewModel {
         isLoading = false
     }
 
-    @MainActor
     func deleteUserData(uid: String) async {
         do {
             try await userService.deleteUserData(uid: uid)
             currentUser = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func updateEmail(uid: String, newEmail: String) async {
+        do {
+            try await userService.updateUser(uid: uid, data: ["email": newEmail])
+            currentUser?.email = newEmail
+        } catch {
+            // Non-critical: auth email is updated, Firestore will sync on next profile update
         }
     }
 

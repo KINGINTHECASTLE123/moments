@@ -1,6 +1,7 @@
 import Foundation
+import os
 
-@Observable
+@Observable @MainActor
 final class MusicViewModel {
     private let spotifyService = SpotifyService()
     private var progressTimer: Timer?
@@ -46,23 +47,21 @@ final class MusicViewModel {
 
     // MARK: - Progress Timer
 
-    @MainActor
     private func startProgressTimer() {
         stopProgressTimer()
         progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+            guard let self else { return }
+            Task { @MainActor [weak self] in
                 self?.tickProgress()
             }
         }
     }
 
-    @MainActor
     private func stopProgressTimer() {
         progressTimer?.invalidate()
         progressTimer = nil
     }
 
-    @MainActor
     private func tickProgress() {
         guard var state = currentPlayerState, !state.isPaused,
               let receivedAt = lastStateReceivedAt else { return }
@@ -74,13 +73,11 @@ final class MusicViewModel {
 
     // MARK: - Authorization
 
-    @MainActor
     func authorize() {
         errorMessage = nil
         errorMessage = spotifyService.authorize()
     }
 
-    @MainActor
     func handleURL(_ url: URL) {
         // Only handle URLs from our Spotify redirect scheme
         guard url.scheme == "moments-spotify-auth" else { return }
@@ -101,7 +98,6 @@ final class MusicViewModel {
 
     // MARK: - Data Fetching
 
-    @MainActor
     func fetchPlaylists() async {
         isLoading = true
         errorMessage = nil
@@ -117,8 +113,8 @@ final class MusicViewModel {
         do {
             return try await spotifyService.fetchPlaylistTracks(playlistID: playlistID)
         } catch {
-            print("MusicViewModel fetchTracks failed for \(playlistID): \(error.localizedDescription)")
-            await MainActor.run { errorMessage = error.localizedDescription }
+            Log.spotify.error("Failed to fetch tracks: \(error.localizedDescription, privacy: .private)")
+            errorMessage = error.localizedDescription
             return []
         }
     }

@@ -24,14 +24,11 @@ struct CreatePostView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack(spacing: 12) {
-                            Circle()
-                                .fill(MomentsStyle.surfaceSecondary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Text(userViewModel.currentUser?.firstInitial ?? "M")
-                                        .font(.system(size: 15, weight: .medium))
-                                        .foregroundColor(MomentsStyle.secondaryText)
-                                )
+                            UserAvatarView(
+                                imageURL: userViewModel.currentUser?.profileImageURL,
+                                fallbackText: userViewModel.currentUser?.firstInitial ?? "M",
+                                size: 40
+                            )
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(userViewModel.currentUser?.username ?? "moments")
@@ -107,12 +104,6 @@ struct CreatePostView: View {
                     HStack(spacing: 16) {
                         PhotosPicker(selection: $selectedPhoto, matching: .images) {
                             Image(systemName: "photo")
-                                .font(.system(size: 18, weight: .light))
-                                .foregroundColor(MomentsStyle.primaryText)
-                        }
-
-                        Button { } label: {
-                            Image(systemName: "camera")
                                 .font(.system(size: 18, weight: .light))
                                 .foregroundColor(MomentsStyle.primaryText)
                         }

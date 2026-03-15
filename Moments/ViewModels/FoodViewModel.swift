@@ -1,6 +1,6 @@
 import Foundation
 
-@Observable
+@Observable @MainActor
 final class FoodViewModel {
     private let foodService: FoodServiceProtocol
 
@@ -8,11 +8,10 @@ final class FoodViewModel {
     var isLoading = false
     var errorMessage: String?
 
-    init(foodService: FoodServiceProtocol = FoodService()) {
-        self.foodService = foodService
+    init(foodService: (any FoodServiceProtocol)? = nil) {
+        self.foodService = foodService ?? FoodService()
     }
 
-    @MainActor
     func fetchDishes() async {
         isLoading = true
         errorMessage = nil
@@ -26,6 +25,10 @@ final class FoodViewModel {
                 return FoodCategory.allCases.firstIndex(of: $0.category) ?? 0 <
                     FoodCategory.allCases.firstIndex(of: $1.category) ?? 0
             }
+
+            // Preload dish images into cache
+            let imageURLs = dishes.compactMap(\.imageURL)
+            await ImageCache.shared.preload(urls: imageURLs)
         } catch {
             errorMessage = "Food load failed: \(error.localizedDescription)"
         }

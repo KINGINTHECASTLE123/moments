@@ -27,14 +27,11 @@ struct PostDetailView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 14) {
                         HStack(spacing: 12) {
-                            Circle()
-                                .fill(MomentsStyle.surfaceSecondary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Text(String(latestPost.authorUsername.prefix(1)).uppercased())
-                                        .font(.system(size: 15, weight: .medium))
-                                        .foregroundColor(MomentsStyle.secondaryText)
-                                )
+                            UserAvatarView(
+                                imageURL: latestPost.authorProfileImageURL,
+                                fallbackText: String(latestPost.authorUsername.prefix(1)).uppercased(),
+                                size: 40
+                            )
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(latestPost.authorUsername)
@@ -142,14 +139,11 @@ struct PostDetailView: View {
                     .foregroundColor(MomentsStyle.border)
 
                 HStack(spacing: 12) {
-                    Circle()
-                        .fill(MomentsStyle.surfaceSecondary)
-                        .frame(width: 30, height: 30)
-                        .overlay(
-                            Text(userViewModel.currentUser?.firstInitial ?? "M")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(MomentsStyle.secondaryText)
-                        )
+                    UserAvatarView(
+                        imageURL: userViewModel.currentUser?.profileImageURL,
+                        fallbackText: userViewModel.currentUser?.firstInitial ?? "M",
+                        size: 30
+                    )
 
                     TextField("Add a comment...", text: $commentText)
                         .font(MomentsStyle.systemLight(14))
@@ -238,14 +232,11 @@ struct CommentRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Circle()
-                .fill(MomentsStyle.surfaceSecondary)
-                .frame(width: 30, height: 30)
-                .overlay(
-                    Text(String(comment.authorUsername.prefix(1)).uppercased())
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                )
+            UserAvatarView(
+                imageURL: nil,
+                fallbackText: String(comment.authorUsername.prefix(1)).uppercased(),
+                size: 30
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {

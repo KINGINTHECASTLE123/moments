@@ -20,12 +20,7 @@ struct CreateAccountView: View {
     // Step 3: Interests
     @State private var selectedInterests: Set<String> = []
 
-    private let allInterests = [
-        "Wine Tasting", "Board Games", "Jazz", "Italian Food",
-        "Cocktails", "Art", "Vinyl", "Late Nights",
-        "Cooking", "Travel", "Photography", "Fitness",
-        "Film", "Coffee", "Reading", "Design"
-    ]
+    private let allInterests = AppConstants.allInterests
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,10 +59,24 @@ struct CreateAccountView: View {
                     .frame(height: 0.5)
 
                 Button {
-                    if step < 2 {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            step += 1
+                    if step == 0 {
+                        guard !fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                              !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                              password.count >= 6 else {
+                            authViewModel.errorMessage = password.count < 6 && !password.isEmpty
+                                ? "Password must be at least 6 characters."
+                                : "Please fill in all fields."
+                            return
                         }
+                        authViewModel.errorMessage = nil
+                        withAnimation(.easeInOut(duration: 0.3)) { step += 1 }
+                    } else if step == 1 {
+                        guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                            authViewModel.errorMessage = "Please choose a username."
+                            return
+                        }
+                        authViewModel.errorMessage = nil
+                        withAnimation(.easeInOut(duration: 0.3)) { step += 1 }
                     } else {
                         Task {
                             if let uid = await authViewModel.createAccount(email: email, password: password) {
@@ -86,7 +95,7 @@ struct CreateAccountView: View {
                 } label: {
                     if authViewModel.isLoading {
                         ProgressView()
-                            .tint(.white)
+                            .tint(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)
@@ -95,7 +104,7 @@ struct CreateAccountView: View {
                         Text(step < 2 ? "CONTINUE" : "GET STARTED")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
-                            .foregroundColor(.white)
+                            .foregroundColor(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)
@@ -111,6 +120,7 @@ struct CreateAccountView: View {
         }
         .background(MomentsStyle.background)
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
         .onChange(of: selectedPhoto) { _, newValue in
             Task {
                 if let data = try? await newValue?.loadTransferable(type: Data.self) {

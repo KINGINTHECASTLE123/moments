@@ -6,7 +6,7 @@ enum AuthState: Equatable {
     case signedIn(uid: String)
 }
 
-@Observable
+@Observable @MainActor
 final class AuthViewModel {
     private let authService: AuthServiceProtocol
     private var listenerHandle: AuthStateDidChangeListenerHandle?
@@ -15,42 +15,40 @@ final class AuthViewModel {
     var errorMessage: String?
     var isLoading = false
 
-    init(authService: AuthServiceProtocol = AuthService()) {
-        self.authService = authService
+    init(authService: (any AuthServiceProtocol)? = nil) {
+        let service = authService ?? AuthService()
+        self.authService = service
         listenForAuthChanges()
     }
 
-    deinit {
-        if let handle = listenerHandle {
-            authService.removeStateDidChangeListener(handle)
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            if let handle = listenerHandle {
+                authService.removeStateDidChangeListener(handle)
+            }
         }
     }
 
     private func listenForAuthChanges() {
         listenerHandle = authService.addStateDidChangeListener { [weak self] user in
-            Task { @MainActor in
-                if let user {
-                    self?.authState = .signedIn(uid: user.uid)
-                } else {
-                    self?.authState = .signedOut
-                }
+            let newState: AuthState = user != nil ? .signedIn(uid: user!.uid) : .signedOut
+            Task { @MainActor [weak self] in
+                self?.authState = newState
             }
         }
     }
 
-    @MainActor
     func signIn(email: String, password: String) async {
         isLoading = true
         errorMessage = nil
         do {
             try await authService.signIn(email: email, password: password)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AuthErrorMapper.message(for: error)
         }
         isLoading = false
     }
 
-    @MainActor
     func createAccount(email: String, password: String) async -> String? {
         isLoading = true
         errorMessage = nil
@@ -59,13 +57,12 @@ final class AuthViewModel {
             isLoading = false
             return uid
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AuthErrorMapper.message(for: error)
             isLoading = false
             return nil
         }
     }
 
-    @MainActor
     func sendPasswordReset(email: String) async -> Bool {
         isLoading = true
         errorMessage = nil
@@ -74,7 +71,7 @@ final class AuthViewModel {
             isLoading = false
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AuthErrorMapper.message(for: error)
             isLoading = false
             return false
         }
@@ -84,18 +81,53 @@ final class AuthViewModel {
         do {
             try authService.signOut()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AuthErrorMapper.message(for: error)
         }
     }
 
-    @MainActor
     func deleteAccount() async {
         isLoading = true
         do {
             try await authService.deleteAccount()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = AuthErrorMapper.message(for: error)
         }
         isLoading = false
+    }
+
+    func updateEmail(to newEmail: String) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            try await authService.updateEmail(to: newEmail)
+        } catch {
+            errorMessage = AuthErrorMapper.message(for: error)
+        }
+        isLoading = false
+    }
+
+    func updatePassword(to newPassword: String) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            try await authService.updatePassword(to: newPassword)
+        } catch {
+            errorMessage = AuthErrorMapper.message(for: error)
+        }
+        isLoading = false
+    }
+
+    func reauthenticate(email: String, password: String) async -> Bool {
+        isLoading = true
+        errorMessage = nil
+        do {
+            try await authService.reauthenticate(email: email, password: password)
+            isLoading = false
+            return true
+        } catch {
+            errorMessage = AuthErrorMapper.message(for: error)
+            isLoading = false
+            return false
+        }
     }
 }

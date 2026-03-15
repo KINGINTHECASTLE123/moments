@@ -94,7 +94,6 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
       allow update: if isOwner(userId) &&
         isValidUserProfile(request.resource.data) &&
-        request.resource.data.email == resource.data.email &&
         request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isOwner(userId);
     }
@@ -133,7 +132,16 @@ service cloud.firestore {
             request.resource.data.imageURL == resource.data.imageURL &&
             request.resource.data.tag == resource.data.tag &&
             request.resource.data.commentCount == resource.data.commentCount &&
-            request.resource.data.createdAt == resource.data.createdAt
+            request.resource.data.createdAt == resource.data.createdAt &&
+            (
+              (request.resource.data.likes == resource.data.likes + 1 &&
+               request.resource.data.likedByUIDs.hasAll([request.auth.uid]) &&
+               !resource.data.likedByUIDs.hasAll([request.auth.uid]))
+              ||
+              (request.resource.data.likes == resource.data.likes - 1 &&
+               !request.resource.data.likedByUIDs.hasAll([request.auth.uid]) &&
+               resource.data.likedByUIDs.hasAll([request.auth.uid]))
+            )
           ) ||
           (
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount']) &&
@@ -156,7 +164,8 @@ service cloud.firestore {
         allow create: if isSignedIn() &&
           request.resource.data.authorUID == request.auth.uid &&
           isValidComment(request.resource.data);
-        allow update, delete: if isSignedIn() && request.auth.uid == resource.data.authorUID;
+        allow update: if isSignedIn() && request.auth.uid == resource.data.authorUID && isValidComment(request.resource.data);
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.authorUID;
       }
     }
   }

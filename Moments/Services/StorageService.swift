@@ -3,8 +3,8 @@ import Foundation
 
 protocol StorageServiceProtocol: Sendable {
     func uploadProfileImage(uid: String, imageData: Data) async throws -> String
-    func uploadPostImage(postID: String, imageData: Data) async throws -> String
-    func deletePostImage(postID: String) async throws
+    func uploadPostImage(uid: String, postID: String, imageData: Data) async throws -> String
+    func deletePostImage(uid: String, postID: String) async throws
 }
 
 final class StorageService: StorageServiceProtocol {
@@ -19,8 +19,8 @@ final class StorageService: StorageServiceProtocol {
         return url.absoluteString
     }
 
-    func uploadPostImage(postID: String, imageData: Data) async throws -> String {
-        let ref = storage.child("postImages/\(postID).jpg")
+    func uploadPostImage(uid: String, postID: String, imageData: Data) async throws -> String {
+        let ref = storage.child("postImages/\(uid)_\(postID).jpg")
         let metadata = StorageMetadata()
         metadata.contentType = "image/jpeg"
         _ = try await ref.putDataAsync(imageData, metadata: metadata)
@@ -28,8 +28,8 @@ final class StorageService: StorageServiceProtocol {
         return url.absoluteString
     }
 
-    func deletePostImage(postID: String) async throws {
-        let ref = storage.child("postImages/\(postID).jpg")
+    func deletePostImage(uid: String, postID: String) async throws {
+        let ref = storage.child("postImages/\(uid)_\(postID).jpg")
         try await ref.delete()
     }
 }

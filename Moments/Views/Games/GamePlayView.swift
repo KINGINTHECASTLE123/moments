@@ -51,7 +51,7 @@ struct GamePlayView: View {
                     Text(isLastCard ? "FINISH" : "NEXT")
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
-                        .foregroundColor(.white)
+                        .foregroundColor(MomentsStyle.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(MomentsStyle.primaryText)

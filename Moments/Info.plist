@@ -15,6 +15,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>SPOTIFY_CLIENT_ID</key>
+	<string>$(SPOTIFY_CLIENT_ID)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Moments uses your photo library to share images in posts and update your profile picture.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>spotify</string>

@@ -1,6 +1,6 @@
 import Foundation
 
-@Observable
+@Observable @MainActor
 final class CommunityViewModel {
     private let postService: PostServiceProtocol
     private let storageService: StorageServiceProtocol
@@ -19,14 +19,13 @@ final class CommunityViewModel {
     private var pendingDeletions: Set<String> = []
 
     init(
-        postService: PostServiceProtocol = PostService(),
-        storageService: StorageServiceProtocol = StorageService()
+        postService: (any PostServiceProtocol)? = nil,
+        storageService: (any StorageServiceProtocol)? = nil
     ) {
-        self.postService = postService
-        self.storageService = storageService
+        self.postService = postService ?? PostService()
+        self.storageService = storageService ?? StorageService()
     }
 
-    @MainActor
     func fetchPosts(currentUID: String) async {
         isLoading = true
         do {
@@ -41,7 +40,6 @@ final class CommunityViewModel {
         isLoading = false
     }
 
-    @MainActor
     func startListening(currentUID: String) {
         guard postsListenerTask == nil || self.currentUID != currentUID else { return }
         stopListening()
@@ -69,14 +67,12 @@ final class CommunityViewModel {
         }
     }
 
-    @MainActor
     func stopListening() {
         postsListenerTask?.cancel()
         postsListenerTask = nil
         currentUID = nil
     }
 
-    @MainActor
     func startCommentsListener(postID: String) {
         stopCommentsListener()
         liveComments = []
@@ -89,13 +85,11 @@ final class CommunityViewModel {
         }
     }
 
-    @MainActor
     func stopCommentsListener() {
         commentsListenerTask?.cancel()
         commentsListenerTask = nil
     }
 
-    @MainActor
     func toggleLike(postID: String, uid: String) async {
         guard let index = posts.firstIndex(where: { $0.id == postID }) else { return }
         let isLiked = posts[index].isLiked
@@ -117,7 +111,6 @@ final class CommunityViewModel {
         pendingLikeMutations.remove(postID)
     }
 
-    @MainActor
     func addPost(
         authorUID: String,
         authorUsername: String,
@@ -146,7 +139,8 @@ final class CommunityViewModel {
         do {
             let postID = try await postService.createPost(post)
             if let imageData {
-                let imageURL = try await storageService.uploadPostImage(postID: postID, imageData: imageData)
+                let compressed = ImageCompressor.compress(data: imageData, maxDimension: 1200) ?? imageData
+                let imageURL = try await storageService.uploadPostImage(uid: authorUID, postID: postID, imageData: compressed)
                 try await postService.updatePost(postID: postID, data: ["imageURL": imageURL])
             }
         } catch {
@@ -164,7 +158,6 @@ final class CommunityViewModel {
         }
     }
 
-    @MainActor
     func addComment(postID: String, authorUID: String, authorUsername: String, body: String) async {
         let comment = FirestoreComment(
             authorUID: authorUID,
@@ -183,7 +176,6 @@ final class CommunityViewModel {
         }
     }
 
-    @MainActor
     func deletePost(postID: String) async {
         guard !deletingPostIDs.contains(postID) else { return }
         guard let index = posts.firstIndex(where: { $0.id == postID }) else { return }
@@ -196,10 +188,11 @@ final class CommunityViewModel {
         do {
             try await postService.deletePost(postID: postID)
             if removedPost.imageURL != nil {
-                try? await storageService.deletePostImage(postID: postID)
+                try? await storageService.deletePostImage(uid: removedPost.authorUID, postID: postID)
             }
         } catch {
-            posts.insert(removedPost, at: index)
+            let safeIndex = min(index, posts.count)
+            posts.insert(removedPost, at: safeIndex)
             pendingDeletions.remove(postID)
             errorMessage = error.localizedDescription
         }

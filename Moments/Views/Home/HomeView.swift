@@ -18,6 +18,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     // Navbar
                     HomeNavBar(
+                        profileImageURL: userViewModel.currentUser?.profileImageURL,
                         initials: userViewModel.currentUser?.initials ?? "M",
                         onProfile: { showProfile = true },
                         onSettings: { path.append(HomeDestination.settings) }
@@ -73,7 +74,9 @@ struct HomeView: View {
                             title: "Profile",
                             subtitle: "Your moments, your people",
                             icon: "person.crop.circle",
-                            itemCount: "12 moments"
+                            itemCount: "12 moments",
+                            profileImageURL: userViewModel.currentUser?.profileImageURL,
+                            profileInitials: userViewModel.currentUser?.initials ?? "M"
                         ) {
                             path.append(HomeDestination.profile)
                         }
@@ -128,6 +131,7 @@ struct ProfileCoverView: View {
 // MARK: - Navbar
 
 struct HomeNavBar: View {
+    let profileImageURL: String?
     let initials: String
     var onProfile: () -> Void
     var onSettings: () -> Void
@@ -136,14 +140,11 @@ struct HomeNavBar: View {
         HStack {
             // Profile avatar
             Button(action: onProfile) {
-                Circle()
-                    .fill(MomentsStyle.surfaceSecondary)
-                    .frame(width: 34, height: 34)
-                    .overlay(
-                        Text(initials)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(MomentsStyle.secondaryText)
-                    )
+                UserAvatarView(
+                    imageURL: profileImageURL,
+                    fallbackText: initials,
+                    size: 34
+                )
             }
 
             Spacer()
@@ -302,6 +303,8 @@ struct HomeWideCard: View {
     let subtitle: String
     let icon: String
     let itemCount: String
+    var profileImageURL: String? = nil
+    var profileInitials: String? = nil
     var action: () -> Void
 
     var body: some View {
@@ -325,9 +328,17 @@ struct HomeWideCard: View {
 
                 Spacer()
 
-                Image(systemName: icon)
-                    .font(.system(size: 32, weight: .light))
-                    .foregroundColor(MomentsStyle.inactive)
+                if let initials = profileInitials {
+                    UserAvatarView(
+                        imageURL: profileImageURL,
+                        fallbackText: initials,
+                        size: 48
+                    )
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundColor(MomentsStyle.inactive)
+                }
             }
             .padding(20)
             .background(MomentsStyle.cardBackground)

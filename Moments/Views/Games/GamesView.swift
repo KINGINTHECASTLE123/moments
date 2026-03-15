@@ -59,10 +59,14 @@ struct GameRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            Text("\(game.number)")
-                .font(MomentsStyle.georgiaItalic(24))
-                .foregroundColor(MomentsStyle.border)
-                .frame(width: 32, alignment: .center)
+            Circle()
+                .fill(MomentsStyle.surfaceSecondary)
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Image(systemName: game.icon)
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(MomentsStyle.primaryText)
+                )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(game.name)

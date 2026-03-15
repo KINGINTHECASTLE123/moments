@@ -45,6 +45,12 @@ enum MomentsStyle {
             : UIColor(red: 0.96, green: 0.955, blue: 0.945, alpha: 1)   // #F5F4F1
     })
 
+    static let accent = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.78, green: 0.72, blue: 0.62, alpha: 1)     // #C7B89E warm gold
+            : UIColor(red: 0.1, green: 0.094, blue: 0.078, alpha: 1)    // #1A1814
+    })
+
     // MARK: - Corner Radii
     static let cardRadius: CGFloat = 12
     static let buttonRadius: CGFloat = 40

@@ -61,6 +61,9 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# Secrets
+Secrets.xcconfig
+
 # Local tooling
 firebase-tools/node_modules/
 firebase-tools/serviceAccountKey.json

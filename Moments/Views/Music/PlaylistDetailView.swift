@@ -16,19 +16,11 @@ struct PlaylistDetailView: View {
                 // Playlist header
                 VStack(spacing: 16) {
                     // Artwork
-                    if let artworkURL = playlist?.artworkURL {
-                        AsyncImage(url: artworkURL) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            artworkPlaceholder
-                        }
-                        .frame(width: 200, height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    } else {
+                    RemoteStorageImageView(urlString: playlist?.artworkURL?.absoluteString) {
                         artworkPlaceholder
                     }
+                    .frame(width: 200, height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
 
                     if let playlist {
                         Text(playlist.name)
@@ -59,7 +51,7 @@ struct PlaylistDetailView: View {
                                     .font(.system(size: 10, weight: .light))
                                     .tracking(2)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(MomentsStyle.background)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 14)
                             .background(MomentsStyle.primaryText)
@@ -135,9 +127,7 @@ struct PlaylistDetailView: View {
             }
         }
         .task(id: playlistID) {
-            print("PlaylistDetailView loading tracks for playlistID: \(playlistID)")
             tracks = await musicViewModel.fetchTracks(playlistID: playlistID)
-            print("PlaylistDetailView loaded \(tracks.count) tracks for playlistID: \(playlistID)")
             isLoading = false
         }
     }
@@ -171,32 +161,17 @@ struct TrackRow: View {
                     .frame(width: 24, alignment: .center)
 
                 // Track artwork
-                if let artworkURL = track.artworkURL {
-                    AsyncImage(url: artworkURL) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(MomentsStyle.surfaceSecondary)
-                            .overlay(
-                                Image(systemName: "music.note")
-                                    .font(.system(size: 12, weight: .light))
-                                    .foregroundColor(MomentsStyle.inactive)
-                            )
-                    }
-                    .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                } else {
+                RemoteStorageImageView(urlString: track.artworkURL?.absoluteString) {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(MomentsStyle.surfaceSecondary)
-                        .frame(width: 40, height: 40)
                         .overlay(
                             Image(systemName: "music.note")
                                 .font(.system(size: 12, weight: .light))
                                 .foregroundColor(MomentsStyle.inactive)
                         )
                 }
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
 
                 // Track info
                 VStack(alignment: .leading, spacing: 2) {

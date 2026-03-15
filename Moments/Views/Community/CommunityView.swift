@@ -56,12 +56,9 @@ struct CommunityView: View {
             guard case .signedIn(let uid) = authViewModel.authState else { return }
             await communityViewModel.fetchPosts(currentUID: uid)
         }
-        .onAppear {
+        .task {
             guard case .signedIn(let uid) = authViewModel.authState else { return }
             communityViewModel.startListening(currentUID: uid)
-        }
-        .onDisappear {
-            communityViewModel.stopListening()
         }
         .sheet(isPresented: $showCreatePost) {
             CreatePostView()
@@ -87,14 +84,11 @@ struct PostCard: View {
         HairlineCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
-                    Circle()
-                        .fill(MomentsStyle.surfaceSecondary)
-                        .frame(width: 34, height: 34)
-                        .overlay(
-                            Text(String(post.authorUsername.prefix(1)).uppercased())
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(MomentsStyle.secondaryText)
-                        )
+                    UserAvatarView(
+                        imageURL: post.authorProfileImageURL,
+                        fallbackText: String(post.authorUsername.prefix(1)).uppercased(),
+                        size: 34
+                    )
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(post.authorUsername)
@@ -194,34 +188,29 @@ struct RemotePostImageView: View {
     let urlString: String
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString)) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-            case .failure, .empty:
-                ZStack {
-                    MomentsStyle.surfaceSecondary
-                    Image(systemName: "photo")
-                        .font(.system(size: 28, weight: .light))
-                        .foregroundColor(MomentsStyle.inactive)
-                }
-                .frame(maxWidth: .infinity)
-            @unknown default:
-                EmptyView()
+        RemoteStorageImageView(urlString: urlString) {
+            ZStack {
+                MomentsStyle.surfaceSecondary
+                Image(systemName: "photo")
+                    .font(.system(size: 28, weight: .light))
+                    .foregroundColor(MomentsStyle.inactive)
             }
+            .frame(maxWidth: .infinity)
         }
+        .frame(maxWidth: .infinity)
+        .clipped()
     }
 }
 
 extension Date {
-    var relativeMomentsTimestamp: String {
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: self, relativeTo: .now)
+        return formatter
+    }()
+
+    var relativeMomentsTimestamp: String {
+        Date.relativeFormatter.localizedString(for: self, relativeTo: .now)
     }
 }
 

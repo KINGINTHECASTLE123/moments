@@ -20,13 +20,16 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
-    @State private var notificationsEnabled = true
-    @State private var momentReminders = true
-    @State private var friendActivity = false
-    @AppStorage("darkMode") private var darkMode = false
-    @State private var haptics = true
+    @Environment(NotificationService.self) private var notificationService
+    @AppStorage(StorageKeys.notificationsEnabled) private var notificationsEnabled = true
+    @AppStorage(StorageKeys.momentReminders) private var momentReminders = true
+    @AppStorage(StorageKeys.friendActivity) private var friendActivity = false
+    @AppStorage(StorageKeys.darkMode) private var darkMode = false
+    @AppStorage(StorageKeys.hapticsEnabled) private var haptics = true
     @State private var showSignOutConfirm = false
     @State private var showDeleteConfirm = false
+    @State private var showDeleteReauth = false
+    @State private var deletePassword = ""
 
     var body: some View {
         ScrollView {
@@ -39,12 +42,12 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.email) {
-                        SettingsRow(icon: "envelope", title: "Email", subtitle: "jacob@moments.app")
+                        SettingsRow(icon: "envelope", title: "Email", subtitle: userViewModel.currentUser?.email ?? "")
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.password) {
-                        SettingsRow(icon: "lock", title: "Password", subtitle: "Last changed 3 months ago")
+                        SettingsRow(icon: "lock", title: "Password", subtitle: "Change your password")
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
@@ -119,7 +122,7 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.version) {
-                        SettingsRow(icon: "info.circle", title: "Version", subtitle: "1.0.0")
+                        SettingsRow(icon: "info.circle", title: "Version", subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     }
                     .buttonStyle(.plain)
                 }
@@ -144,6 +147,7 @@ struct SettingsView: View {
 
                 // Delete account
                 Button {
+                    deletePassword = ""
                     showDeleteConfirm = true
                 } label: {
                     Text("DELETE ACCOUNT")
@@ -167,7 +171,7 @@ struct SettingsView: View {
                         .foregroundColor(MomentsStyle.inactive)
                         .padding(.top, 8)
 
-                    Text("Copenhagen · 2025")
+                    Text("Copenhagen · \(Calendar.current.component(.year, from: Date()))")
                         .font(.system(size: 9, weight: .light))
                         .tracking(2)
                         .foregroundColor(MomentsStyle.inactive)
@@ -192,26 +196,11 @@ struct SettingsView: View {
             case .editProfile:
                 EditProfileView()
             case .email:
-                SettingsDetailView(
-                    title: "Email",
-                    eyebrow: "Account",
-                    headline: "Keep your sign-in email current.",
-                    detailText: "Use a current email address so password resets, login alerts, and important account notices reach you without friction."
-                )
+                ChangeEmailView()
             case .password:
-                SettingsDetailView(
-                    title: "Password",
-                    eyebrow: "Account",
-                    headline: "Update your password regularly.",
-                    detailText: "A fresh password helps protect your profile, private moments, and connected services across the app."
-                )
+                ChangePasswordView()
             case .connectedAccounts:
-                SettingsDetailView(
-                    title: "Connected Accounts",
-                    eyebrow: "Account",
-                    headline: "Manage linked services.",
-                    detailText: "Spotify and Instagram are currently connected. Linked accounts help personalize playlists and make sharing easier."
-                )
+                ConnectedAccountsView()
             case .profileVisibility:
                 SettingsDetailView(
                     title: "Profile Visibility",
@@ -273,7 +262,7 @@ struct SettingsView: View {
                     title: "Version",
                     eyebrow: "About",
                     headline: "Current build",
-                    detailText: "Moments 1.0.0\nDesigned in Copenhagen with a focus on intimate social experiences."
+                    detailText: "Moments \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\nDesigned in Copenhagen with a focus on intimate social experiences."
                 )
             }
         }
@@ -285,18 +274,52 @@ struct SettingsView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
+        .onChange(of: notificationsEnabled) { _, enabled in
+            Task {
+                if enabled {
+                    await notificationService.requestAuthorization()
+                    if momentReminders {
+                        await notificationService.scheduleMomentReminders()
+                    }
+                } else {
+                    notificationService.cancelMomentReminders()
+                }
+            }
+        }
+        .onChange(of: momentReminders) { _, enabled in
+            Task {
+                guard notificationsEnabled else { return }
+                await notificationService.updateMomentReminders(enabled: enabled)
+            }
+        }
         .alert("Delete Account", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { }
-            Button("Delete Account", role: .destructive) {
+            Button("Continue", role: .destructive) {
+                showDeleteReauth = true
+            }
+        } message: {
+            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+        }
+        .alert("Confirm Password", isPresented: $showDeleteReauth) {
+            SecureField("Password", text: $deletePassword)
+            Button("Cancel", role: .cancel) { }
+            Button("Delete Forever", role: .destructive) {
                 Task {
                     guard case .signedIn(let uid) = authViewModel.authState else { return }
+                    let reauthed = await authViewModel.reauthenticate(
+                        email: userViewModel.currentUser?.email ?? "",
+                        password: deletePassword
+                    )
+                    guard reauthed else { return }
+                    // Delete Firestore data first while still authenticated
                     await userViewModel.deleteUserData(uid: uid)
                     guard userViewModel.errorMessage == nil else { return }
+                    // Then delete the auth account
                     await authViewModel.deleteAccount()
                 }
             }
         } message: {
-            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+            Text("Enter your password to confirm account deletion.")
         }
     }
 }
@@ -384,7 +407,7 @@ struct SettingsToggleRow: View {
             Spacer()
 
             Toggle("", isOn: $isOn)
-                .tint(MomentsStyle.secondaryText)
+                .tint(MomentsStyle.accent)
                 .labelsHidden()
         }
         .padding(.vertical, 8)
@@ -459,5 +482,6 @@ struct SettingsDetailView: View {
         SettingsView()
             .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(NotificationService())
     }
 }

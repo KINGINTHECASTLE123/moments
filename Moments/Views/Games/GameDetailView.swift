@@ -12,14 +12,15 @@ struct GameDetailView: View {
                         .fill(MomentsStyle.surfaceSecondary)
                         .frame(height: 220)
 
-                    VStack(spacing: 12) {
-                        Text("\(game.number)")
-                            .font(MomentsStyle.georgiaItalic(56))
-                            .foregroundColor(MomentsStyle.border)
+                    VStack(spacing: 16) {
+                        Image(systemName: game.icon)
+                            .font(.system(size: 48, weight: .light))
+                            .foregroundColor(MomentsStyle.primaryText)
 
-                        Image(systemName: gameIcon(for: game.number))
-                            .font(.system(size: 28, weight: .light))
-                            .foregroundColor(MomentsStyle.inactive)
+                        Text(game.tag.uppercased())
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                            .foregroundColor(MomentsStyle.secondaryText)
                     }
                 }
 
@@ -79,7 +80,7 @@ struct GameDetailView: View {
                         Text("START GAME")
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
-                            .foregroundColor(.white)
+                            .foregroundColor(MomentsStyle.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(MomentsStyle.primaryText)
@@ -103,17 +104,6 @@ struct GameDetailView: View {
         }
     }
 
-    private func gameIcon(for number: Int) -> String {
-        switch number {
-        case 1: return "arrow.left.arrow.right"
-        case 2: return "hand.raised"
-        case 3: return "theatermasks"
-        case 4: return "moon.stars"
-        case 5: return "heart"
-        case 6: return "flame"
-        default: return "dice"
-        }
-    }
 }
 
 #Preview {

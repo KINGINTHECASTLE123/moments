@@ -1,11 +1,12 @@
 import Foundation
+import os
 import SpotifyiOS
 import UIKit
 
 final class SpotifyService: NSObject {
 
     // MARK: - Configuration (replace with your credentials)
-    static let clientID = "24d62dd7beb644a5abc30a9e70e6e6e3"
+    static let clientID: String = Bundle.main.object(forInfoDictionaryKey: "SPOTIFY_CLIENT_ID") as? String ?? ""
     static let redirectURI = URL(string: "moments-spotify-auth://callback")!
 
     // MARK: - Callbacks (set by MusicViewModel)
@@ -15,6 +16,7 @@ final class SpotifyService: NSObject {
     var onAuthorizationFailed: ((String) -> Void)?
 
     // MARK: - Properties
+    private static let keychainTokenKey = "spotify_access_token"
     private(set) var accessToken: String?
     private(set) var isConnected = false
 
@@ -70,9 +72,19 @@ final class SpotifyService: NSObject {
         return nil
     }
 
+    // MARK: - Token Persistence
+
+    func restoreToken() {
+        guard accessToken == nil,
+              let stored = KeychainService.load(key: Self.keychainTokenKey) else { return }
+        accessToken = stored
+        appRemote.connectionParameters.accessToken = stored
+    }
+
     // MARK: - Connection
 
     func connect() {
+        restoreToken()
         guard let _ = accessToken else { return }
         guard !appRemote.isConnected else { return }
         appRemote.connect()
@@ -82,6 +94,7 @@ final class SpotifyService: NSObject {
         if appRemote.isConnected {
             appRemote.disconnect()
         }
+        KeychainService.delete(key: Self.keychainTokenKey)
     }
 
     // MARK: - Playback Controls
@@ -168,7 +181,7 @@ final class SpotifyService: NSObject {
             do {
                 decoded = try JSONDecoder().decode(SpotifyPlaylistTracksResponse.self, from: data)
             } catch {
-                print("Spotify playlist tracks JSON decode error: \(decodeErrorContext(error, data: data))")
+                Log.spotify.error("Playlist tracks decode error: \(self.decodeErrorContext(error, data: data), privacy: .private)")
                 // Fall back to manual parsing for this page
                 let fallbackTracks = try parsePlaylistTracksFallback(from: data)
                 allTracks.append(contentsOf: fallbackTracks)
@@ -186,7 +199,7 @@ final class SpotifyService: NSObject {
 
     private var defaultCallback: SPTAppRemoteCallback {
         { _, error in
-            if let error { print("Spotify playback error: \(error)") }
+            if let error { Log.spotify.error("Playback error: \(error.localizedDescription, privacy: .private)") }
         }
     }
 
@@ -216,7 +229,7 @@ final class SpotifyService: NSObject {
             with: CGSize(width: 400, height: 400),
             callback: { [weak self] result, error in
                 if let error {
-                    print("Spotify artwork fetch error: \(error)")
+                    Log.spotify.error("Artwork fetch error: \(error.localizedDescription, privacy: .private)")
                     self?.onPlayerStateChanged?(baseState)
                     return
                 }
@@ -242,7 +255,7 @@ final class SpotifyService: NSObject {
             try data.write(to: fileURL, options: .atomic)
             return fileURL
         } catch {
-            print("Spotify artwork cache write error: \(error)")
+            Log.spotify.error("Artwork cache write error: \(error.localizedDescription, privacy: .private)")
             return nil
         }
     }
@@ -364,7 +377,7 @@ extension SpotifyService: SPTAppRemoteDelegate {
         isConnected = true
         appRemote.playerAPI?.delegate = self
         appRemote.playerAPI?.subscribe(toPlayerState: { _, error in
-            if let error { print("Spotify subscribe error: \(error)") }
+            if let error { Log.spotify.error("Subscribe error: \(error.localizedDescription, privacy: .private)") }
         })
         onConnected?()
     }
@@ -384,22 +397,24 @@ extension SpotifyService: SPTAppRemoteDelegate {
 
 extension SpotifyService: SPTSessionManagerDelegate {
     func sessionManager(manager: SPTSessionManager, didInitiate session: SPTSession) {
-        print("Spotify session initiated")
+        Log.spotify.debug("Session initiated")
         accessToken = session.accessToken
         appRemote.connectionParameters.accessToken = session.accessToken
+        KeychainService.save(key: Self.keychainTokenKey, data: session.accessToken)
         connect()
     }
 
     func sessionManager(manager: SPTSessionManager, didFailWith error: Error) {
         let message = formatSpotifyError(error)
-        print("Spotify session initiation failed: \(message)")
+        Log.spotify.error("Session initiation failed: \(message, privacy: .private)")
         onAuthorizationFailed?(message)
     }
 
     func sessionManager(manager: SPTSessionManager, didRenew session: SPTSession) {
-        print("Spotify session renewed")
+        Log.spotify.debug("Session renewed")
         accessToken = session.accessToken
         appRemote.connectionParameters.accessToken = session.accessToken
+        KeychainService.save(key: Self.keychainTokenKey, data: session.accessToken)
     }
 }
 

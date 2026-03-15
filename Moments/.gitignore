@@ -11,6 +11,7 @@ xcuserdata/
 # Firebase / local secrets
 serviceAccountKey.json
 GoogleService-Info.plist
+Secrets.xcconfig
 
 # Node / tooling
 node_modules/

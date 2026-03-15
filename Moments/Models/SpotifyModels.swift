@@ -32,7 +32,7 @@ struct SpotifyAlbum: Codable {
     }
 }
 
-struct SpotifyTrackItem: Codable, Identifiable {
+struct SpotifyTrackItem: Codable, Identifiable, Sendable {
     let id: String
     let name: String
     let artists: [SpotifyArtist]
@@ -75,7 +75,7 @@ struct SpotifyTrackItem: Codable, Identifiable {
     }
 }
 
-struct SpotifyPlaylistItem: Codable, Identifiable {
+struct SpotifyPlaylistItem: Codable, Identifiable, Sendable {
     let id: String
     let name: String
     let description: String?
@@ -199,7 +199,7 @@ struct SpotifyPlaylistTrackWrapper: Codable {
 
 // MARK: - Local Player State
 
-struct SpotifyPlayerState {
+struct SpotifyPlayerState: Sendable {
     var trackName: String
     var artistName: String
     var albumName: String

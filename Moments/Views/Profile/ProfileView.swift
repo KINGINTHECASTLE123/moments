@@ -161,11 +161,6 @@ struct ProfileView: View {
                         .font(MomentsStyle.georgiaItalic(12))
                         .foregroundColor(MomentsStyle.secondaryText)
                         .padding(.top, 8)
-
-                    Text("Copenhagen")
-                        .font(.system(size: 10, weight: .light))
-                        .tracking(2)
-                        .foregroundColor(MomentsStyle.inactive)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 24)
@@ -356,16 +351,9 @@ struct ProfileAvatarView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-            } else if let imageURL, let url = URL(string: imageURL) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        placeholder
-                    }
+            } else if let imageURL {
+                RemoteStorageImageView(urlString: imageURL) {
+                    placeholder
                 }
             } else {
                 placeholder

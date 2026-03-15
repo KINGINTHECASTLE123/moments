@@ -17,6 +17,9 @@ protocol AuthServiceProtocol: Sendable {
     func sendPasswordReset(email: String) async throws
     func signOut() throws
     func deleteAccount() async throws
+    func updateEmail(to newEmail: String) async throws
+    func updatePassword(to newPassword: String) async throws
+    func reauthenticate(email: String, password: String) async throws
     func addStateDidChangeListener(_ callback: @escaping @Sendable (FirebaseAuth.User?) -> Void) -> AuthStateDidChangeListenerHandle
     func removeStateDidChangeListener(_ handle: AuthStateDidChangeListenerHandle)
 }
@@ -46,6 +49,22 @@ final class AuthService: AuthServiceProtocol {
     func deleteAccount() async throws {
         guard let user = auth.currentUser else { throw AuthError.notSignedIn }
         try await user.delete()
+    }
+
+    func updateEmail(to newEmail: String) async throws {
+        guard let user = auth.currentUser else { throw AuthError.notSignedIn }
+        try await user.sendEmailVerification(beforeUpdatingEmail: newEmail)
+    }
+
+    func updatePassword(to newPassword: String) async throws {
+        guard let user = auth.currentUser else { throw AuthError.notSignedIn }
+        try await user.updatePassword(to: newPassword)
+    }
+
+    func reauthenticate(email: String, password: String) async throws {
+        guard let user = auth.currentUser else { throw AuthError.notSignedIn }
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        try await user.reauthenticate(with: credential)
     }
 
     func addStateDidChangeListener(_ callback: @escaping @Sendable (FirebaseAuth.User?) -> Void) -> AuthStateDidChangeListenerHandle {

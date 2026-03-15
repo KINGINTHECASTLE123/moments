@@ -1,4 +1,3 @@
-import FirebaseStorage
 import SwiftUI
 
 struct RemoteStorageImageView<Placeholder: View>: View {
@@ -41,36 +40,6 @@ struct RemoteStorageImageView<Placeholder: View>: View {
             return
         }
 
-        if let image = await loadFirebaseStorageImage(urlString: urlString) {
-            uiImage = image
-        } else if let image = await loadRemoteImage(urlString: urlString) {
-            uiImage = image
-        }
-    }
-
-    private func loadFirebaseStorageImage(urlString: String) async -> UIImage? {
-        guard urlString.hasPrefix("gs://") || urlString.contains("firebasestorage") else {
-            return nil
-        }
-
-        do {
-            let data = try await Storage.storage().reference(forURL: urlString).data(maxSize: 5 * 1024 * 1024)
-            return UIImage(data: data)
-        } catch {
-            return nil
-        }
-    }
-
-    private func loadRemoteImage(urlString: String) async -> UIImage? {
-        guard let url = URL(string: urlString) else {
-            return nil
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            return UIImage(data: data)
-        } catch {
-            return nil
-        }
+        uiImage = await ImageCache.shared.image(for: urlString)
     }
 }

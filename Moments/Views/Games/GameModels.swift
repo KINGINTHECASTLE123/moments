@@ -8,6 +8,8 @@ struct Game: Identifiable, Hashable {
     let tag: String
     let rules: [String]
     let promptCount: Int
+    let icon: String
+    let emoji: String
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(number)
@@ -48,7 +50,9 @@ let lightGames: [Game] = [
             "Everyone picks a side — no skipping!",
             "Debate your choices before moving on."
         ],
-        promptCount: 15
+        promptCount: 15,
+        icon: "arrow.left.arrow.right",
+        emoji: "🤔"
     ),
     Game(
         number: 2,
@@ -60,7 +64,9 @@ let lightGames: [Game] = [
             "Your friends describe it without saying the word.",
             "Guess correctly and tap next!"
         ],
-        promptCount: 15
+        promptCount: 15,
+        icon: "hand.raised",
+        emoji: "🙆"
     ),
     Game(
         number: 3,
@@ -72,7 +78,9 @@ let lightGames: [Game] = [
             "No talking, no mouthing words, no pointing at objects.",
             "The group tries to guess what it is."
         ],
-        promptCount: 15
+        promptCount: 15,
+        icon: "theatermasks",
+        emoji: "🎭"
     ),
 ]
 
@@ -87,7 +95,9 @@ let deepGames: [Game] = [
             "Everyone takes a turn answering honestly.",
             "No judgement — just listen and share."
         ],
-        promptCount: 12
+        promptCount: 12,
+        icon: "moon.stars",
+        emoji: "🌙"
     ),
     Game(
         number: 5,
@@ -99,7 +109,9 @@ let deepGames: [Game] = [
             "Answer honestly or complete the dare.",
             "Keep it playful — the bolder the better."
         ],
-        promptCount: 12
+        promptCount: 12,
+        icon: "heart",
+        emoji: "💋"
     ),
     Game(
         number: 6,
@@ -111,7 +123,9 @@ let deepGames: [Game] = [
             "You must complete it or face a group-chosen penalty.",
             "No backing down — that's the whole point."
         ],
-        promptCount: 12
+        promptCount: 12,
+        icon: "flame",
+        emoji: "🔥"
     ),
 ]
 
