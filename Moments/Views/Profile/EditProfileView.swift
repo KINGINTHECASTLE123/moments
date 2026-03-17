@@ -106,6 +106,7 @@ struct EditProfileView: View {
                         FlowLayout(spacing: 10) {
                             ForEach(allInterests, id: \.self) { interest in
                                 Button {
+                                    Haptics.select()
                                     if selectedInterests.contains(interest) {
                                         selectedInterests.remove(interest)
                                     } else {

@@ -1,6 +1,6 @@
 import FirebaseFirestore
 
-enum FoodServiceError: LocalizedError {
+enum DrinksServiceError: LocalizedError {
     case decodeFailed(documentID: String, underlyingError: Error)
     case missingField(documentID: String, field: String)
     case invalidField(documentID: String, field: String)
@@ -8,35 +8,35 @@ enum FoodServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .decodeFailed(let documentID, let underlyingError):
-            return "Failed to decode dish '\(documentID)': \(underlyingError.localizedDescription)"
+            return "Failed to decode drink '\(documentID)': \(underlyingError.localizedDescription)"
         case .missingField(let documentID, let field):
-            return "Dish '\(documentID)' is missing field '\(field)'."
+            return "Drink '\(documentID)' is missing field '\(field)'."
         case .invalidField(let documentID, let field):
-            return "Dish '\(documentID)' has invalid field '\(field)'."
+            return "Drink '\(documentID)' has invalid field '\(field)'."
         }
     }
 }
 
-protocol FoodServiceProtocol: Sendable {
-    func fetchDishes() async throws -> [FirestoreDish]
+protocol DrinksServiceProtocol: Sendable {
+    func fetchDrinks() async throws -> [FirestoreDrink]
 }
 
-final class FoodService: FoodServiceProtocol {
+final class DrinksService: DrinksServiceProtocol {
     private let db = Firestore.firestore()
 
-    func fetchDishes() async throws -> [FirestoreDish] {
-        let snapshot = try await db.collection("dishes").getDocuments()
+    func fetchDrinks() async throws -> [FirestoreDrink] {
+        let snapshot = try await db.collection("drinks").getDocuments()
         return snapshot.documents.compactMap { document in
             do {
-                return try decodeDish(from: document)
+                return try decodeDrink(from: document)
             } catch {
-                print("[FoodService] Skipping document '\(document.documentID)': \(error.localizedDescription)")
+                print("[DrinksService] Skipping document '\(document.documentID)': \(error.localizedDescription)")
                 return nil
             }
         }
     }
 
-    private func decodeDish(from document: QueryDocumentSnapshot) throws -> FirestoreDish {
+    private func decodeDrink(from document: QueryDocumentSnapshot) throws -> FirestoreDrink {
         let data = document.data()
         let documentID = document.documentID
 
@@ -59,8 +59,8 @@ final class FoodService: FoodServiceProtocol {
         guard let categoryRawValue = data["category"] as? String else {
             throw missingOrInvalidField(documentID: documentID, field: "category", value: data["category"])
         }
-        guard let category = FoodCategory(rawValue: categoryRawValue) else {
-            throw FoodServiceError.invalidField(documentID: documentID, field: "category")
+        guard let category = DrinkCategory(rawValue: categoryRawValue) else {
+            throw DrinksServiceError.invalidField(documentID: documentID, field: "category")
         }
         let sortOrder: Int
         if let intVal = data["sortOrder"] as? Int {
@@ -71,7 +71,7 @@ final class FoodService: FoodServiceProtocol {
             throw missingOrInvalidField(documentID: documentID, field: "sortOrder", value: data["sortOrder"])
         }
 
-        return FirestoreDish(
+        return FirestoreDrink(
             id: documentID,
             name: name,
             pairing: pairing,
@@ -84,7 +84,7 @@ final class FoodService: FoodServiceProtocol {
         )
     }
 
-    private func missingOrInvalidField(documentID: String, field: String, value: Any?) -> FoodServiceError {
+    private func missingOrInvalidField(documentID: String, field: String, value: Any?) -> DrinksServiceError {
         if value == nil {
             return .missingField(documentID: documentID, field: field)
         }

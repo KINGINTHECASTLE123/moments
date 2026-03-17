@@ -1,0 +1,8 @@
+{
+    "landing": {
+        "heroImageURL": "gs://moments-e2a58.firebasestorage.app/content/landing/landing-hero.jpg"
+    },
+    "home": {
+        "gamesHeroImageURL": "gs://moments-e2a58.firebasestorage.app/content/home/games-hero.jpg"
+    }
+}

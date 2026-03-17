@@ -60,6 +60,14 @@ enum MomentsStyle {
         .custom("Georgia-Italic", size: size)
     }
 
+    static func helveticaBold(_ size: CGFloat) -> Font {
+        .custom("Helvetica-Bold", size: size)
+    }
+
+    static func spaceGrotesk(_ size: CGFloat) -> Font {
+        .custom("SpaceGrotesk-Bold", size: size)
+    }
+
     static func systemLight(_ size: CGFloat) -> Font {
         .system(size: size, weight: .light)
     }

@@ -7,20 +7,20 @@ struct GameDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Hero area
-                ZStack {
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(MomentsStyle.surfaceSecondary)
-                        .frame(height: 220)
+                ParallaxHeader(height: 220, coordinateSpace: "scroll") {
+                    ZStack {
+                        MomentsStyle.surfaceSecondary
 
-                    VStack(spacing: 16) {
-                        Image(systemName: game.icon)
-                            .font(.system(size: 48, weight: .light))
-                            .foregroundColor(MomentsStyle.primaryText)
+                        VStack(spacing: 16) {
+                            Image(systemName: game.icon)
+                                .font(.system(size: 48, weight: .light))
+                                .foregroundColor(MomentsStyle.primaryText)
 
-                        Text(game.tag.uppercased())
-                            .font(.system(size: 10, weight: .light))
-                            .tracking(3)
-                            .foregroundColor(MomentsStyle.secondaryText)
+                            Text(game.tag.uppercased())
+                                .font(.system(size: 10, weight: .light))
+                                .tracking(3)
+                                .foregroundColor(MomentsStyle.secondaryText)
+                        }
                     }
                 }
 
@@ -90,6 +90,7 @@ struct GameDetailView: View {
                 .padding(24)
             }
         }
+        .coordinateSpace(name: "scroll")
         .background(MomentsStyle.background)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

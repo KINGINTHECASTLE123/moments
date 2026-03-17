@@ -1,5 +1,25 @@
 import SwiftUI
 
+/// A convenience wrapper around RemoteStorageImageView for fixed-height image tiles
+/// used in Food and Drinks cards/detail views.
+struct RemoteDishImageView: View {
+    let urlString: String?
+    let height: CGFloat
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RemoteStorageImageView(urlString: urlString) {
+            Rectangle()
+                .fill(MomentsStyle.surfaceSecondary)
+                .overlay(ProgressView())
+        }
+        .frame(height: height)
+        .frame(maxWidth: .infinity)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    }
+}
+
 struct RemoteStorageImageView<Placeholder: View>: View {
     let urlString: String?
     let contentMode: ContentMode
@@ -37,6 +57,13 @@ struct RemoteStorageImageView<Placeholder: View>: View {
         uiImage = nil
 
         guard let urlString, !urlString.isEmpty else {
+            return
+        }
+
+        // If the string is a local asset name (no URL scheme), load from the bundle directly.
+        let looksLikeURL = urlString.contains("://") || urlString.hasPrefix("http")
+        if !looksLikeURL {
+            uiImage = UIImage(named: urlString)
             return
         }
 

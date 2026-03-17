@@ -5,7 +5,11 @@ import Observation
 @MainActor
 final class AppContentViewModel {
     var landingHeroImageURL: String?
-    var homeGamesHeroImageURL: String?
+    var gamesImageURL: String?
+    var musicImageURL: String?
+    var foodImageURL: String?
+    var drinksImageURL: String?
+    var communityImageURL: String?
     var isLoading = false
     var errorMessage: String?
 
@@ -33,11 +37,21 @@ final class AppContentViewModel {
             let (landing, home) = try await (landingContent, homeContent)
 
             landingHeroImageURL = landing.heroImageURL
-            homeGamesHeroImageURL = home.gamesHeroImageURL
+            gamesImageURL = home.gamesImageURL
+            musicImageURL = home.musicImageURL
+            foodImageURL = home.foodImageURL
+            drinksImageURL = home.drinksImageURL
+            communityImageURL = home.communityImageURL
             hasLoaded = true
 
-            // Preload hero images into cache
-            await ImageCache.shared.preload(urls: [landing.heroImageURL, home.gamesHeroImageURL])
+            // Preload home tile images into cache
+            var preloadURLs = [landing.heroImageURL]
+            if let g = home.gamesImageURL { preloadURLs.append(g) }
+            if let m = home.musicImageURL { preloadURLs.append(m) }
+            if let f = home.foodImageURL { preloadURLs.append(f) }
+            if let d = home.drinksImageURL { preloadURLs.append(d) }
+            if let c = home.communityImageURL { preloadURLs.append(c) }
+            await ImageCache.shared.preload(urls: preloadURLs)
         } catch {
             errorMessage = error.localizedDescription
         }

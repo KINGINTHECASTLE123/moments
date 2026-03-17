@@ -1,0 +1,214 @@
+[
+  {
+    "id": "negroni",
+    "name": "Negroni",
+    "pairing": "Bitter, balanced, timeless",
+    "tags": ["Classic"],
+    "imagePath": "content/drinks/negroni.jpg",
+    "ingredients": [
+      "30ml gin",
+      "30ml Campari",
+      "30ml sweet vermouth",
+      "Orange peel for garnish",
+      "Ice"
+    ],
+    "instructions": [
+      "Add gin, Campari, and sweet vermouth to a mixing glass with ice.",
+      "Stir for 30 seconds until well chilled.",
+      "Strain into a rocks glass over a large ice cube.",
+      "Express an orange peel over the drink and drop it in."
+    ],
+    "category": "Cocktails",
+    "sortOrder": 1
+  },
+  {
+    "id": "espresso-martini",
+    "name": "Espresso Martini",
+    "pairing": "Bold coffee meets smooth vodka",
+    "tags": ["Popular"],
+    "imagePath": "content/drinks/espresso-martini.jpg",
+    "ingredients": [
+      "50ml vodka",
+      "30ml fresh espresso",
+      "15ml coffee liqueur",
+      "10ml simple syrup",
+      "3 coffee beans for garnish"
+    ],
+    "instructions": [
+      "Brew a fresh shot of espresso and let it cool slightly.",
+      "Add vodka, espresso, coffee liqueur, and simple syrup to a shaker with ice.",
+      "Shake vigorously for 15 seconds to build a frothy top.",
+      "Double strain into a chilled coupe glass.",
+      "Garnish with three coffee beans on top of the foam."
+    ],
+    "category": "Cocktails",
+    "sortOrder": 2
+  },
+  {
+    "id": "paloma",
+    "name": "Paloma",
+    "pairing": "Grapefruit, tequila, fizz",
+    "tags": ["Refreshing"],
+    "imagePath": "content/drinks/paloma.jpg",
+    "ingredients": [
+      "50ml tequila blanco",
+      "100ml grapefruit soda",
+      "15ml fresh lime juice",
+      "Pinch of salt",
+      "Grapefruit wedge for garnish"
+    ],
+    "instructions": [
+      "Rim a highball glass with salt and fill with ice.",
+      "Pour in the tequila and fresh lime juice.",
+      "Top with grapefruit soda and stir gently.",
+      "Garnish with a grapefruit wedge and serve."
+    ],
+    "category": "Cocktails",
+    "sortOrder": 3
+  },
+  {
+    "id": "citrus-sunrise",
+    "name": "Citrus Sunrise",
+    "pairing": "Bright, tangy, energising",
+    "tags": ["Vitamin C"],
+    "imagePath": "content/drinks/citrus-sunrise.jpg",
+    "ingredients": [
+      "2 large oranges, juiced",
+      "1 ruby grapefruit, juiced",
+      "1 lemon, juiced",
+      "1 tsp fresh ginger, grated",
+      "1 tsp honey or agave",
+      "Ice"
+    ],
+    "instructions": [
+      "Juice the oranges, grapefruit, and lemon into a large measuring jug.",
+      "Finely grate the ginger and stir it into the juice.",
+      "Add honey or agave and stir until dissolved.",
+      "Fill a tall glass with ice and pour the juice over.",
+      "Garnish with an orange wheel and serve immediately."
+    ],
+    "category": "Juices",
+    "sortOrder": 1
+  },
+  {
+    "id": "green-detox",
+    "name": "Green Detox",
+    "pairing": "Clean, crisp, revitalising",
+    "tags": ["Wellness"],
+    "imagePath": "content/drinks/green-detox.jpg",
+    "ingredients": [
+      "2 green apples",
+      "1 large cucumber",
+      "4 stalks celery",
+      "1 cup spinach",
+      "1 lemon, juiced",
+      "Small piece of fresh ginger"
+    ],
+    "instructions": [
+      "Wash all produce thoroughly under cold water.",
+      "Chop the apples, cucumber, and celery into pieces that fit your juicer.",
+      "Juice the spinach and celery first, then the apple and cucumber.",
+      "Add the lemon juice and ginger at the end for brightness.",
+      "Stir gently, pour over ice, and serve fresh."
+    ],
+    "category": "Juices",
+    "sortOrder": 2
+  },
+  {
+    "id": "watermelon-mint",
+    "name": "Watermelon & Mint",
+    "pairing": "Sweet, cool, summery",
+    "tags": ["Seasonal"],
+    "imagePath": "content/drinks/watermelon-mint.jpg",
+    "ingredients": [
+      "3 cups watermelon, cubed and seeded",
+      "Juice of 2 limes",
+      "8 fresh mint leaves",
+      "1 tsp honey or agave (optional)",
+      "Sparkling water (optional)",
+      "Ice"
+    ],
+    "instructions": [
+      "Blend the watermelon cubes until smooth.",
+      "Strain through a fine mesh sieve to remove pulp.",
+      "Muddle the mint leaves gently in the bottom of a glass.",
+      "Pour the watermelon juice over the mint and add lime juice.",
+      "Add ice and top with a splash of sparkling water if desired.",
+      "Stir gently and garnish with a mint sprig."
+    ],
+    "category": "Juices",
+    "sortOrder": 3
+  },
+  {
+    "id": "virgin-mojito",
+    "name": "Virgin Mojito",
+    "pairing": "Zesty, fresh, effervescent",
+    "tags": ["Classic"],
+    "imagePath": "content/drinks/virgin-mojito.jpg",
+    "ingredients": [
+      "8 fresh mint leaves",
+      "1 lime, cut into wedges",
+      "2 tsp caster sugar",
+      "Crushed ice",
+      "Soda water",
+      "Mint sprig for garnish"
+    ],
+    "instructions": [
+      "Place the mint leaves, lime wedges, and sugar in a tall glass.",
+      "Muddle gently to release the mint oils and lime juice.",
+      "Fill the glass with crushed ice.",
+      "Top with soda water and stir well to combine.",
+      "Garnish with a fresh mint sprig and a lime wheel."
+    ],
+    "category": "Mocktails",
+    "sortOrder": 1
+  },
+  {
+    "id": "berry-spritz",
+    "name": "Berry Spritz",
+    "pairing": "Fruity, bubbly, elegant",
+    "tags": ["Fruity"],
+    "imagePath": "content/drinks/berry-spritz.jpg",
+    "ingredients": [
+      "6 fresh raspberries",
+      "4 fresh blackberries",
+      "15ml fresh lemon juice",
+      "15ml simple syrup",
+      "Sparkling water",
+      "Rosemary sprig for garnish"
+    ],
+    "instructions": [
+      "Muddle the raspberries and blackberries in a shaker.",
+      "Add lemon juice, simple syrup, and a handful of ice.",
+      "Shake well and double strain into a wine glass over ice.",
+      "Top with sparkling water and stir gently.",
+      "Garnish with a rosemary sprig and a few whole berries."
+    ],
+    "category": "Mocktails",
+    "sortOrder": 2
+  },
+  {
+    "id": "ginger-mule",
+    "name": "Ginger Mule",
+    "pairing": "Spicy, sharp, warming",
+    "tags": ["Spiced"],
+    "imagePath": "content/drinks/ginger-mule.jpg",
+    "ingredients": [
+      "150ml ginger beer",
+      "30ml fresh lime juice",
+      "1 tsp fresh ginger, grated",
+      "1 tsp honey",
+      "Dash of Angostura bitters (optional)",
+      "Lime wheel for garnish"
+    ],
+    "instructions": [
+      "Combine the grated ginger, lime juice, and honey in a copper mug or glass.",
+      "Stir until the honey dissolves.",
+      "Fill with ice and pour the ginger beer over.",
+      "Add a dash of bitters if desired and stir gently.",
+      "Garnish with a lime wheel and serve."
+    ],
+    "category": "Mocktails",
+    "sortOrder": 3
+  }
+]

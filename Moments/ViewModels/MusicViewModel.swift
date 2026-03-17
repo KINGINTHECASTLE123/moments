@@ -8,16 +8,13 @@ final class MusicViewModel {
     private var lastStateReceivedAt: Date?
 
     var isConnected = false
-    var playlists: [SpotifyPlaylistItem] = []
     var currentPlayerState: SpotifyPlayerState?
-    var isLoading = false
     var errorMessage: String?
 
     init() {
         spotifyService.onConnected = { [weak self] in
             Task { @MainActor in
                 self?.isConnected = true
-                await self?.fetchPlaylists()
                 self?.spotifyService.getPlayerState()
             }
         }
@@ -96,27 +93,11 @@ final class MusicViewModel {
         spotifyService.disconnect()
     }
 
-    // MARK: - Data Fetching
-
-    func fetchPlaylists() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            playlists = try await spotifyService.fetchUserPlaylists()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-    func fetchTracks(playlistID: String) async -> [SpotifyTrackItem] {
-        do {
-            return try await spotifyService.fetchPlaylistTracks(playlistID: playlistID)
-        } catch {
-            Log.spotify.error("Failed to fetch tracks: \(error.localizedDescription, privacy: .private)")
-            errorMessage = error.localizedDescription
-            return []
-        }
+    func disconnectAndForgetSession() {
+        spotifyService.disconnectAndForgetSession()
+        isConnected = false
+        currentPlayerState = nil
+        stopProgressTimer()
     }
 
     // MARK: - Playback Controls
@@ -148,6 +129,37 @@ final class MusicViewModel {
 
     func skipPrevious() {
         spotifyService.skipPrevious()
+    }
+
+    // MARK: - Cover Art Fetching
+
+    func fetchPlaylistCovers() async {
+        guard let token = spotifyService.accessToken else { return }
+
+        for i in CuratedPlaylists.all.indices {
+            guard CuratedPlaylists.all[i].coverImageURL == nil else { continue }
+
+            let playlistID = CuratedPlaylists.all[i].id
+            guard let url = URL(string: "https://api.spotify.com/v1/playlists/\(playlistID)?fields=images") else { continue }
+
+            var request = URLRequest(url: url)
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200 else { continue }
+
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let images = json["images"] as? [[String: Any]],
+                   let firstImage = images.first,
+                   let imageURL = firstImage["url"] as? String {
+                    CuratedPlaylists.all[i].coverImageURL = imageURL
+                }
+            } catch {
+                continue
+            }
+        }
     }
 
     // MARK: - App Remote Access (for scene lifecycle)

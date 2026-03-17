@@ -150,6 +150,7 @@ struct CreatePostView: View {
                                 imageData: photoData
                             )
                             if communityViewModel.errorMessage == nil {
+                                Haptics.success()
                                 dismiss()
                             }
                         }

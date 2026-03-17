@@ -1,4 +1,5 @@
 import FirebaseFirestore
+import FirebaseStorage
 import Foundation
 
 enum AppContentServiceError: LocalizedError {
@@ -17,6 +18,7 @@ enum AppContentServiceError: LocalizedError {
 
 struct AppContentService {
     private let database = Firestore.firestore()
+    private let storage = Storage.storage().reference()
 
     func fetchLandingContent() async throws -> LandingContent {
         let snapshot = try await database.collection("appContent").document("landing").getDocument()
@@ -33,16 +35,34 @@ struct AppContentService {
     }
 
     func fetchHomeContent() async throws -> HomeContent {
-        let snapshot = try await database.collection("appContent").document("home").getDocument()
+        let basePath = "content/home"
+        let files = ["games.jpg", "music.jpg", "food.jpg", "drinks.jpg", "community.jpg"]
 
-        guard snapshot.exists, let data = snapshot.data() else {
-            throw AppContentServiceError.missingDocument("home")
+        // Fetch download URLs for all home tile images from Storage
+        var urls: [String: String] = [:]
+        await withTaskGroup(of: (String, String?).self) { group in
+            for file in files {
+                group.addTask {
+                    let ref = self.storage.child("\(basePath)/\(file)")
+                    do {
+                        let url = try await ref.downloadURL()
+                        return (file, url.absoluteString)
+                    } catch {
+                        return (file, nil)
+                    }
+                }
+            }
+            for await (file, url) in group {
+                if let url { urls[file] = url }
+            }
         }
 
-        guard let gamesHeroImageURL = data["gamesHeroImageURL"] as? String, !gamesHeroImageURL.isEmpty else {
-            throw AppContentServiceError.missingField(documentID: "home", field: "gamesHeroImageURL")
-        }
-
-        return HomeContent(gamesHeroImageURL: gamesHeroImageURL)
+        return HomeContent(
+            gamesImageURL: urls["games.jpg"],
+            musicImageURL: urls["music.jpg"],
+            foodImageURL: urls["food.jpg"],
+            drinksImageURL: urls["drinks.jpg"],
+            communityImageURL: urls["community.jpg"]
+        )
     }
 }

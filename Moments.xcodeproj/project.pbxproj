@@ -11,7 +11,6 @@
 		382CCFF92F65BD2C00B002E2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 382CCFF82F65BD2C00B002E2 /* FirebaseFirestore */; };
 		382CCFFB2F65BD3800B002E2 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 382CCFFA2F65BD3800B002E2 /* FirebaseStorage */; };
 		382CEB022F66110F00B002E2 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 382CEB012F66110F00B002E2 /* SpotifyiOS */; };
-		3838A0352F6770BF0018841A /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3838A0342F6770BF0018841A /* Secrets.xcconfig */; };
 		3838A0372F6770FD0018841A /* Secrets.xcconfig.example in Resources */ = {isa = PBXBuildFile; fileRef = 3838A0362F6770FD0018841A /* Secrets.xcconfig.example */; };
 /* End PBXBuildFile section */
 
@@ -155,7 +154,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3838A0352F6770BF0018841A /* Secrets.xcconfig in Resources */,
 				3838A0372F6770FD0018841A /* Secrets.xcconfig.example in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -175,6 +173,7 @@
 /* Begin XCBuildConfiguration section */
 		382983102F64C93A00A45D2A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3838A0342F6770BF0018841A /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -238,6 +237,7 @@
 		};
 		382983112F64C93A00A45D2A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3838A0342F6770BF0018841A /* Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -294,6 +294,7 @@
 		};
 		382983132F64C93A00A45D2A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3838A0342F6770BF0018841A /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -327,6 +328,7 @@
 		};
 		382983142F64C93A00A45D2A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3838A0342F6770BF0018841A /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
