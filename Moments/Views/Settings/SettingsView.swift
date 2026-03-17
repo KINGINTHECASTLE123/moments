@@ -233,8 +233,8 @@ struct SettingsView: View {
                 SettingsDetailView(
                     title: "Contact Us",
                     eyebrow: "Support",
-                    headline: "Reach the team directly.",
-                    detailText: "For support requests, feature feedback, or bug reports, contact the team and include as much context as possible."
+                    headline: "Get in touch with the team.",
+                    detailText: "For support requests, bug reports, or feedback, email us at momentsapp1@outlook.com. We aim to respond within 48 hours."
                 )
             case .rateMoments:
                 SettingsDetailView(
@@ -247,15 +247,47 @@ struct SettingsView: View {
                 SettingsDetailView(
                     title: "Terms of Service",
                     eyebrow: "About",
-                    headline: "Read the terms that govern usage.",
-                    detailText: "This section covers account expectations, acceptable use, content ownership, and how the service may evolve over time."
+                    headline: "Terms of use for Moments.",
+                    detailText: """
+                    Last updated: March 2026
+
+                    By using Moments, you agree to these terms. You must be at least 13 years old to use this app.
+
+                    You are responsible for all content you post. Do not post content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable.
+
+                    We reserve the right to remove content or suspend accounts that violate these terms without prior notice.
+
+                    Your content remains yours. By posting, you grant Moments a non-exclusive license to display it within the app.
+
+                    The app is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the app.
+
+                    We may update these terms at any time. Continued use after changes constitutes acceptance.
+
+                    For questions, contact us at momentsapp1@outlook.com.
+                    """
                 )
             case .privacyPolicy:
                 SettingsDetailView(
                     title: "Privacy Policy",
                     eyebrow: "About",
-                    headline: "Understand how information is handled.",
-                    detailText: "Review what data is collected, how it is used, and which controls are available to you inside the app."
+                    headline: "How we handle your information.",
+                    detailText: """
+                    Last updated: March 2026
+
+                    Moments collects: your name, email address, profile photo, and content you post (text and images). This data is stored securely using Firebase (Google Cloud).
+
+                    We use your data solely to provide the app's functionality: authentication, profile display, and community features.
+
+                    We do not sell, share, or rent your personal data to third parties. We do not track you across other apps or websites.
+
+                    If you connect Spotify, we store an access token securely in your device's Keychain. We do not access your Spotify account data beyond playback control and playlist cover art.
+
+                    You can delete your account and all associated data at any time from Settings → Delete Account.
+
+                    We use no third-party analytics or advertising SDKs. The app does not contain ads.
+
+                    For data requests or questions, contact momentsapp1@outlook.com.
+                    """
                 )
             case .version:
                 SettingsDetailView(

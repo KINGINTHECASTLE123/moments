@@ -68,3 +68,7 @@ Secrets.xcconfig
 firebase-tools/node_modules/
 firebase-tools/serviceAccountKey.json
 firebase-tools/*.log
+
+# macOS
+.DS_Store
+**/.DS_Store

@@ -66,6 +66,21 @@ final class PostService: PostServiceProtocol {
     }
 
     func deletePost(postID: String) async throws {
+        // Delete all comments in the subcollection first
+        let commentsSnapshot = try await postsCollection.document(postID)
+            .collection("comments")
+            .getDocuments()
+
+        // Use a batch for atomic deletion
+        if !commentsSnapshot.documents.isEmpty {
+            let batch = db.batch()
+            for commentDoc in commentsSnapshot.documents {
+                batch.deleteDocument(commentDoc.reference)
+            }
+            try await batch.commit()
+        }
+
+        // Then delete the post itself
         try await postsCollection.document(postID).delete()
     }
 

@@ -7,7 +7,7 @@ struct CuratedPlaylist: Identifiable, Hashable {
     let mood: String        // "intimate", "energetic", "chill"
     let spotifyURI: String
     let timeOfDay: String   // "morning", "afternoon", "evening", "lateNight"
-    var coverImageURL: String?  // fetched from Spotify API at runtime
+    let coverImageURL: String? = nil
 
     var spotifyURL: URL? {
         URL(string: "https://open.spotify.com/playlist/\(id)")
@@ -15,7 +15,7 @@ struct CuratedPlaylist: Identifiable, Hashable {
 }
 
 enum CuratedPlaylists {
-    static var all: [CuratedPlaylist] = [
+    static let all: [CuratedPlaylist] = [
         CuratedPlaylist(
             id: "6rFUD4nYmvlQX34risW6XV",
             name: "Dinner Party Grooves",

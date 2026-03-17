@@ -35,9 +35,9 @@ service cloud.firestore {
       data.interests is list &&
       data.interests.size() <= 20 &&
       (!('profileImageURL' in data) || data.profileImageURL == null || data.profileImageURL is string) &&
-      data.momentsCount is int &&
-      data.friendsCount is int &&
-      data.likesCount is int &&
+      data.momentsCount is int && data.momentsCount >= 0 &&
+      data.friendsCount is int && data.friendsCount >= 0 &&
+      data.likesCount is int && data.likesCount >= 0 &&
       data.createdAt is timestamp;
     }
 
@@ -64,8 +64,8 @@ service cloud.firestore {
       data.body.size() <= 1000 &&
       (!('imageURL' in data) || data.imageURL == null || data.imageURL is string) &&
       (!('tag' in data) || data.tag == null || data.tag is string) &&
-      data.likes is int &&
-      data.commentCount is int &&
+      data.likes is int && data.likes >= 0 &&
+      data.commentCount is int && data.commentCount >= 0 &&
       data.likedByUIDs is list &&
       data.createdAt is timestamp;
     }

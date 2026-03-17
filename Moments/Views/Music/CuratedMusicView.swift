@@ -4,21 +4,16 @@ import UIKit
 struct CuratedMusicView: View {
     @Environment(MusicViewModel.self) private var musicViewModel
     @State private var selectedMood: String = "all"
-    @State private var playlists: [CuratedPlaylist] = CuratedPlaylists.all
 
     private let moods = ["all", "intimate", "energetic", "chill"]
 
     private var featuredPlaylist: CuratedPlaylist {
         let hour = Calendar.current.component(.hour, from: Date())
-        let featured = CuratedPlaylists.featured(for: hour)
-        // Return the version from our local playlists array (which may have cover URLs)
-        return playlists.first(where: { $0.id == featured.id }) ?? featured
+        return CuratedPlaylists.featured(for: hour)
     }
 
     private var filteredPlaylists: [CuratedPlaylist] {
-        CuratedPlaylists.filtered(by: selectedMood).map { playlist in
-            playlists.first(where: { $0.id == playlist.id }) ?? playlist
-        }
+        CuratedPlaylists.filtered(by: selectedMood)
     }
 
     var body: some View {
@@ -67,17 +62,10 @@ struct CuratedMusicView: View {
         }
         .task {
             await musicViewModel.fetchPlaylistCovers()
-            syncCovers()
         }
         .refreshable {
             await musicViewModel.fetchPlaylistCovers()
-            syncCovers()
         }
-    }
-
-    /// Sync cover URLs from CuratedPlaylists.all into our local @State array
-    private func syncCovers() {
-        playlists = CuratedPlaylists.all
     }
 
     // MARK: - Tonight's Pick
@@ -96,7 +84,7 @@ struct CuratedMusicView: View {
                 NavigationLink(value: playlist) {
                     VStack(alignment: .leading, spacing: 0) {
                         // Cover art
-                        RemoteStorageImageView(urlString: playlist.coverImageURL) {
+                        RemoteStorageImageView(urlString: musicViewModel.coverURL(for: playlist.id)) {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(MomentsStyle.surfaceSecondary)
                                 .frame(height: 200)
@@ -208,7 +196,7 @@ struct CuratedMusicView: View {
 
             ForEach(filteredPlaylists) { playlist in
                 NavigationLink(value: playlist) {
-                    CuratedPlaylistRow(playlist: playlist)
+                    CuratedPlaylistRow(playlist: playlist, coverURL: musicViewModel.coverURL(for: playlist.id))
                 }
                 .buttonStyle(.plain)
 
@@ -269,11 +257,12 @@ private struct PlayButton: View {
 
 private struct CuratedPlaylistRow: View {
     let playlist: CuratedPlaylist
+    let coverURL: String?
 
     var body: some View {
         HStack(spacing: 14) {
             // Artwork
-            RemoteStorageImageView(urlString: playlist.coverImageURL) {
+            RemoteStorageImageView(urlString: coverURL) {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(MomentsStyle.surfaceSecondary)
                     .overlay(

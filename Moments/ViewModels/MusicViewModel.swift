@@ -10,6 +10,7 @@ final class MusicViewModel {
     var isConnected = false
     var currentPlayerState: SpotifyPlayerState?
     var errorMessage: String?
+    var playlistCovers: [String: String] = [:]  // playlistID -> coverImageURL
 
     init() {
         spotifyService.onConnected = { [weak self] in
@@ -136,10 +137,10 @@ final class MusicViewModel {
     func fetchPlaylistCovers() async {
         guard let token = spotifyService.accessToken else { return }
 
-        for i in CuratedPlaylists.all.indices {
-            guard CuratedPlaylists.all[i].coverImageURL == nil else { continue }
+        for playlist in CuratedPlaylists.all {
+            guard playlistCovers[playlist.id] == nil else { continue }
 
-            let playlistID = CuratedPlaylists.all[i].id
+            let playlistID = playlist.id
             guard let url = URL(string: "https://api.spotify.com/v1/playlists/\(playlistID)?fields=images") else { continue }
 
             var request = URLRequest(url: url)
@@ -154,12 +155,16 @@ final class MusicViewModel {
                    let images = json["images"] as? [[String: Any]],
                    let firstImage = images.first,
                    let imageURL = firstImage["url"] as? String {
-                    CuratedPlaylists.all[i].coverImageURL = imageURL
+                    playlistCovers[playlistID] = imageURL
                 }
             } catch {
                 continue
             }
         }
+    }
+
+    func coverURL(for playlistID: String) -> String? {
+        playlistCovers[playlistID]
     }
 
     // MARK: - App Remote Access (for scene lifecycle)

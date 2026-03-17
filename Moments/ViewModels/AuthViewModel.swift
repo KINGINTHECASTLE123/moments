@@ -21,13 +21,9 @@ final class AuthViewModel {
         listenForAuthChanges()
     }
 
-    nonisolated deinit {
-        MainActor.assumeIsolated {
-            if let handle = listenerHandle {
-                authService.removeStateDidChangeListener(handle)
-            }
-        }
-    }
+    // Note: AuthViewModel is @State in MomentsApp and lives for the app's
+    // entire lifetime, so deinit is never called in practice.
+    // If this ever changes, use Task { @MainActor in ... } for safe cleanup.
 
     private func listenForAuthChanges() {
         listenerHandle = authService.addStateDidChangeListener { [weak self] user in

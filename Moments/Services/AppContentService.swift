@@ -18,7 +18,7 @@ enum AppContentServiceError: LocalizedError {
 
 struct AppContentService {
     private let database = Firestore.firestore()
-    private let storage = Storage.storage().reference()
+    private nonisolated(unsafe) let storage = Storage.storage().reference()
 
     func fetchLandingContent() async throws -> LandingContent {
         let snapshot = try await database.collection("appContent").document("landing").getDocument()

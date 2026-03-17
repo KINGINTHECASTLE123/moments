@@ -101,7 +101,7 @@ final class UserViewModel {
 
     func deleteUserData(uid: String) async {
         do {
-            try await userService.deleteUserData(uid: uid)
+            try await userService.deleteAllUserData(uid: uid)
             currentUser = nil
         } catch {
             errorMessage = error.localizedDescription

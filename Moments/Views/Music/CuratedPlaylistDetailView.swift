@@ -9,7 +9,7 @@ struct CuratedPlaylistDetailView: View {
             VStack(spacing: 0) {
                 // Playlist header
                 VStack(spacing: 16) {
-                    RemoteStorageImageView(urlString: playlist.coverImageURL) {
+                    RemoteStorageImageView(urlString: musicViewModel.coverURL(for: playlist.id)) {
                         artworkPlaceholder
                     }
                     .frame(width: 220, height: 220)
