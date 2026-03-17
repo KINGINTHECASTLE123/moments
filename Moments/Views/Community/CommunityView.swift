@@ -53,6 +53,7 @@ struct CommunityView: View {
         }
         .background(MomentsStyle.background)
         .refreshable {
+            Haptics.cardSettle()
             guard case .signedIn(let uid) = authViewModel.authState else { return }
             await communityViewModel.fetchPosts(currentUID: uid)
         }
@@ -68,6 +69,7 @@ struct CommunityView: View {
 
 struct PostCard: View {
     @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(UserViewModel.self) private var userViewModel
     @Environment(CommunityViewModel.self) private var communityViewModel
 
     let post: FirestorePost
@@ -80,12 +82,24 @@ struct PostCard: View {
         return false
     }
 
+    private var resolvedAuthorImageURL: String? {
+        if let imageURL = post.authorProfileImageURL, !imageURL.isEmpty {
+            return imageURL
+        }
+
+        if case .signedIn(let uid) = authViewModel.authState, post.authorUID == uid {
+            return userViewModel.currentUser?.profileImageURL
+        }
+
+        return nil
+    }
+
     var body: some View {
         HairlineCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
                     UserAvatarView(
-                        imageURL: post.authorProfileImageURL,
+                        imageURL: resolvedAuthorImageURL,
                         fallbackText: String(post.authorUsername.prefix(1)).uppercased(),
                         size: 34
                     )
@@ -138,21 +152,12 @@ struct PostCard: View {
                 }
 
                 HStack(spacing: 20) {
-                    Button {
+                    AnimatedLikeButton(isLiked: post.isLiked, count: post.likes) {
                         guard case .signedIn(let uid) = authViewModel.authState, let postID = post.id else { return }
                         Task {
                             await communityViewModel.toggleLike(postID: postID, uid: uid)
                         }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                                .font(.system(size: 13, weight: .light))
-                            Text("\(post.likes)")
-                                .font(MomentsStyle.systemLight(12))
-                        }
-                        .foregroundColor(post.isLiked ? MomentsStyle.primaryText : MomentsStyle.secondaryText)
                     }
-                    .buttonStyle(.plain)
 
                     HStack(spacing: 5) {
                         Image(systemName: "bubble.right")
@@ -174,6 +179,7 @@ struct PostCard: View {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 guard let postID = post.id else { return }
+                Haptics.warning()
                 Task {
                     await communityViewModel.deletePost(postID: postID)
                 }

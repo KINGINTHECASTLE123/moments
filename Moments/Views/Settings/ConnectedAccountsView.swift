@@ -47,7 +47,7 @@ struct ConnectedAccountsView: View {
 
                         Button {
                             if musicViewModel.isConnected {
-                                musicViewModel.disconnect()
+                                musicViewModel.disconnectAndForgetSession()
                             } else {
                                 musicViewModel.authorize()
                             }

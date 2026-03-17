@@ -1,12 +1,13 @@
 import SwiftUI
 
 enum MomentsTab: Int, CaseIterable {
-    case games, food, music, community
+    case games, food, drinks, music, community
 
     var title: String {
         switch self {
         case .games: "Games"
-        case .food: "Food & Drinks"
+        case .food: "Food"
+        case .drinks: "Drinks"
         case .music: "Music"
         case .community: "Community"
         }
@@ -16,6 +17,7 @@ enum MomentsTab: Int, CaseIterable {
         switch self {
         case .games: "dice"
         case .food: "fork.knife"
+        case .drinks: "wineglass"
         case .music: "music.note"
         case .community: "person.2"
         }
@@ -36,7 +38,8 @@ struct MainTabView: View {
                 switch selectedTab {
                 case .games: GamesView()
                 case .food: FoodView()
-                case .music: MusicView()
+                case .drinks: DrinksView()
+                case .music: CuratedMusicView()
                 case .community: CommunityView()
                 }
             }
@@ -51,6 +54,7 @@ struct MainTabView: View {
             HStack {
                 ForEach(MomentsTab.allCases, id: \.self) { tab in
                     Button {
+                        Haptics.select()
                         selectedTab = tab
                     } label: {
                         VStack(spacing: 4) {

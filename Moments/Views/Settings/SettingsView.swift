@@ -269,6 +269,7 @@ struct SettingsView: View {
         .alert("Sign Out", isPresented: $showSignOutConfirm) {
             Button("Cancel", role: .cancel) { }
             Button("Sign Out", role: .destructive) {
+                Haptics.warning()
                 authViewModel.signOut()
             }
         } message: {

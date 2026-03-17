@@ -102,6 +102,10 @@ service cloud.firestore {
       allow read: if isSignedIn();
     }
 
+    match /drinks/{drinkId} {
+      allow read: if isSignedIn();
+    }
+
     match /appContent/{documentId} {
       allow read: if true;
     }

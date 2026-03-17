@@ -5,7 +5,7 @@ import UIKit
 
 final class SpotifyService: NSObject {
 
-    // MARK: - Configuration (replace with your credentials)
+    // MARK: - Configuration (loaded from Secrets.xcconfig → Info.plist)
     static let clientID: String = Bundle.main.object(forInfoDictionaryKey: "SPOTIFY_CLIENT_ID") as? String ?? ""
     static let redirectURI = URL(string: "moments-spotify-auth://callback")!
 
@@ -40,6 +40,10 @@ final class SpotifyService: NSObject {
         #if targetEnvironment(simulator)
         return "Spotify App Remote skal testes på en fysisk iPhone eller iPad, ikke i simulatoren."
         #else
+        guard !Self.clientID.isEmpty else {
+            return "Spotify client ID is missing from the app configuration."
+        }
+
         guard let spotifyURL = URL(string: "spotify://") else {
             return "Kunne ikke oprette Spotify URL."
         }
@@ -94,6 +98,12 @@ final class SpotifyService: NSObject {
         if appRemote.isConnected {
             appRemote.disconnect()
         }
+    }
+
+    func disconnectAndForgetSession() {
+        disconnect()
+        accessToken = nil
+        appRemote.connectionParameters.accessToken = nil
         KeychainService.delete(key: Self.keychainTokenKey)
     }
 
@@ -124,75 +134,6 @@ final class SpotifyService: NSObject {
             guard let state = result as? SPTAppRemotePlayerState else { return }
             self?.publishPlayerState(state)
         }
-    }
-
-    // MARK: - Web API
-
-    func fetchUserPlaylists() async throws -> [SpotifyPlaylistItem] {
-        guard let token = accessToken else { throw SpotifyError.notAuthorized }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/me/playlists?limit=50")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw SpotifyError.invalidResponse
-        }
-        guard httpResponse.statusCode == 200 else {
-            throw SpotifyError.apiError(
-                statusCode: httpResponse.statusCode,
-                responseBody: String(data: data, encoding: .utf8)
-            )
-        }
-
-        let decoded: SpotifyPlaylistsResponse
-        do {
-            decoded = try JSONDecoder().decode(SpotifyPlaylistsResponse.self, from: data)
-        } catch {
-            throw SpotifyError.decodingError(context: decodeErrorContext(error, data: data))
-        }
-        return decoded.items
-    }
-
-    func fetchPlaylistTracks(playlistID: String) async throws -> [SpotifyTrackItem] {
-        guard let token = accessToken else { throw SpotifyError.notAuthorized }
-
-        var allTracks: [SpotifyTrackItem] = []
-        var nextURL: URL? = URL(string: "https://api.spotify.com/v1/playlists/\(playlistID)/items?limit=100")
-
-        while let url = nextURL {
-            var request = URLRequest(url: url)
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw SpotifyError.invalidResponse
-            }
-
-            guard httpResponse.statusCode == 200 else {
-                throw SpotifyError.apiError(
-                    statusCode: httpResponse.statusCode,
-                    responseBody: String(data: data, encoding: .utf8)
-                )
-            }
-
-            let decoded: SpotifyPlaylistTracksResponse
-            do {
-                decoded = try JSONDecoder().decode(SpotifyPlaylistTracksResponse.self, from: data)
-            } catch {
-                Log.spotify.error("Playlist tracks decode error: \(self.decodeErrorContext(error, data: data), privacy: .private)")
-                // Fall back to manual parsing for this page
-                let fallbackTracks = try parsePlaylistTracksFallback(from: data)
-                allTracks.append(contentsOf: fallbackTracks)
-                break
-            }
-
-            allTracks.append(contentsOf: decoded.items.compactMap(\.track))
-            nextURL = decoded.next.flatMap { URL(string: $0) }
-        }
-
-        return allTracks
     }
 
     // MARK: - Private Helpers
@@ -282,92 +223,6 @@ final class SpotifyService: NSObject {
         return "\(codeDescription) (domain: \(nsError.domain), code: \(nsError.code)): \(underlyingDescription)"
     }
 
-    private func decodeErrorContext(_ error: Error, data: Data) -> String {
-        let responseSnippet = String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .prefix(240) ?? "<non-utf8 response>"
-
-        switch error {
-        case let DecodingError.keyNotFound(key, context):
-            return "Missing key '\(key.stringValue)' at \(codingPathDescription(context.codingPath)). Response: \(responseSnippet)"
-        case let DecodingError.valueNotFound(_, context):
-            return "Missing value at \(codingPathDescription(context.codingPath)). Response: \(responseSnippet)"
-        case let DecodingError.typeMismatch(_, context):
-            return "Type mismatch at \(codingPathDescription(context.codingPath)). Response: \(responseSnippet)"
-        case let DecodingError.dataCorrupted(context):
-            return "Data corrupted at \(codingPathDescription(context.codingPath)): \(context.debugDescription). Response: \(responseSnippet)"
-        default:
-            return "Decode failed: \(error.localizedDescription). Response: \(responseSnippet)"
-        }
-    }
-
-    private func codingPathDescription(_ codingPath: [CodingKey]) -> String {
-        if codingPath.isEmpty {
-            return "<root>"
-        }
-
-        return codingPath.map(\.stringValue).joined(separator: ".")
-    }
-
-    private func parsePlaylistTracksFallback(from data: Data) throws -> [SpotifyTrackItem] {
-        guard
-            let rootObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let itemObjects = rootObject["items"] as? [[String: Any]]
-        else {
-            return []
-        }
-
-        return itemObjects.compactMap(parsePlaylistTrackItem)
-    }
-
-    private func parsePlaylistTrackItem(_ item: [String: Any]) -> SpotifyTrackItem? {
-        // The /items endpoint (Feb 2026+) uses "item", older /tracks uses "track"
-        guard let track = (item["item"] as? [String: Any]) ?? (item["track"] as? [String: Any]) else {
-            return nil
-        }
-
-        guard
-            let uri = track["uri"] as? String,
-            let name = track["name"] as? String,
-            let durationMs = track["duration_ms"] as? Int
-        else {
-            return nil
-        }
-
-        let artists: [SpotifyArtist] = (track["artists"] as? [[String: Any]] ?? []).compactMap { artistDict in
-            guard let name = artistDict["name"] as? String else { return nil }
-            return SpotifyArtist(id: artistDict["id"] as? String, name: name)
-        }
-
-        guard !artists.isEmpty else {
-            return nil
-        }
-
-        let albumDict = track["album"] as? [String: Any] ?? [:]
-        let albumImages: [SpotifyImage] = (albumDict["images"] as? [[String: Any]] ?? []).compactMap { imageDict in
-            guard let url = imageDict["url"] as? String else { return nil }
-            return SpotifyImage(
-                url: url,
-                width: imageDict["width"] as? Int,
-                height: imageDict["height"] as? Int
-            )
-        }
-
-        let album = SpotifyAlbum(
-            id: albumDict["id"] as? String,
-            name: albumDict["name"] as? String ?? "",
-            images: albumImages
-        )
-
-        return SpotifyTrackItem(
-            id: track["id"] as? String ?? uri,
-            name: name,
-            artists: artists,
-            album: album,
-            durationMs: durationMs,
-            uri: uri
-        )
-    }
 }
 
 // MARK: - SPTAppRemoteDelegate
@@ -375,6 +230,7 @@ final class SpotifyService: NSObject {
 extension SpotifyService: SPTAppRemoteDelegate {
     func appRemoteDidEstablishConnection(_ appRemote: SPTAppRemote) {
         isConnected = true
+
         appRemote.playerAPI?.delegate = self
         appRemote.playerAPI?.subscribe(toPlayerState: { _, error in
             if let error { Log.spotify.error("Subscribe error: \(error.localizedDescription, privacy: .private)") }
@@ -426,32 +282,4 @@ extension SpotifyService: SPTAppRemotePlayerStateDelegate {
     }
 }
 
-// MARK: - Errors
 
-enum SpotifyError: LocalizedError {
-    case notAuthorized
-    case invalidResponse
-    case decodingError(context: String)
-    case apiError(statusCode: Int, responseBody: String?)
-
-    var errorDescription: String? {
-        switch self {
-        case .notAuthorized:
-            return "Not connected to Spotify"
-        case .invalidResponse:
-            return "Spotify returned an invalid response"
-        case let .decodingError(context):
-            return "Spotify decode error: \(context)"
-        case let .apiError(statusCode, responseBody):
-            let trimmedBody = responseBody?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .prefix(160)
-
-            if let trimmedBody, !trimmedBody.isEmpty {
-                return "Spotify API error \(statusCode): \(trimmedBody)"
-            }
-
-            return "Spotify API error \(statusCode)"
-        }
-    }
-}

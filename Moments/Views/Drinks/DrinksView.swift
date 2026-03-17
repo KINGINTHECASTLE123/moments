@@ -1,23 +1,23 @@
 import SwiftUI
 
-struct FoodView: View {
-    @Environment(FoodViewModel.self) private var foodViewModel
-    @State private var selectedCategory: FoodCategory = .starters
+struct DrinksView: View {
+    @Environment(DrinksViewModel.self) private var drinksViewModel
+    @State private var selectedCategory: DrinkCategory = .cocktails
 
-    private var dishes: [FirestoreDish] {
-        foodViewModel.dishes(for: selectedCategory)
+    private var drinks: [FirestoreDrink] {
+        drinksViewModel.drinks(for: selectedCategory)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader("Food", subtitle: "Curated dishes for every course")
+            SectionHeader("Drinks", subtitle: "Curated cocktails, juices & mocktails")
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 24)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(FoodCategory.allCases, id: \.self) { category in
+                    ForEach(DrinkCategory.allCases, id: \.self) { category in
                         Button {
                             Haptics.select()
                             withAnimation(.easeInOut(duration: 0.2)) {
@@ -35,15 +35,15 @@ struct FoodView: View {
             }
             .padding(.bottom, 20)
 
-            if foodViewModel.isLoading && foodViewModel.dishes.isEmpty {
+            if drinksViewModel.isLoading && drinksViewModel.drinks.isEmpty {
                 Spacer()
                 ProgressView()
                     .frame(maxWidth: .infinity)
                 Spacer()
-            } else if let errorMessage = foodViewModel.errorMessage, foodViewModel.dishes.isEmpty {
+            } else if let errorMessage = drinksViewModel.errorMessage, drinksViewModel.drinks.isEmpty {
                 Spacer()
                 VStack(spacing: 12) {
-                    Text("Food is unavailable.")
+                    Text("Drinks are unavailable.")
                         .font(MomentsStyle.systemMedium(16))
                         .foregroundColor(MomentsStyle.primaryText)
 
@@ -54,9 +54,9 @@ struct FoodView: View {
                 }
                 .padding(.horizontal, 24)
                 Spacer()
-            } else if dishes.isEmpty {
+            } else if drinks.isEmpty {
                 Spacer()
-                Text("No dishes have been added for \(selectedCategory.rawValue.lowercased()) yet.")
+                Text("No drinks have been added for \(selectedCategory.rawValue.lowercased()) yet.")
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
                     .multilineTextAlignment(.center)
@@ -65,9 +65,9 @@ struct FoodView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 14) {
-                        ForEach(dishes) { dish in
-                            NavigationLink(value: dish) {
-                                DishCard(dish: dish)
+                        ForEach(drinks) { drink in
+                            NavigationLink(value: drink) {
+                                DrinkCard(drink: drink)
                             }
                             .buttonStyle(.plain)
                         }
@@ -77,40 +77,40 @@ struct FoodView: View {
                 }
                 .refreshable {
                     Haptics.cardSettle()
-                    await foodViewModel.fetchDishes()
+                    await drinksViewModel.fetchDrinks()
                 }
             }
         }
         .background(MomentsStyle.background)
-        .navigationDestination(for: FirestoreDish.self) { dish in
-            DishDetailView(dish: dish)
+        .navigationDestination(for: FirestoreDrink.self) { drink in
+            DrinkDetailView(drink: drink)
         }
         .task {
-            if foodViewModel.dishes.isEmpty {
-                await foodViewModel.fetchDishes()
+            if drinksViewModel.drinks.isEmpty {
+                await drinksViewModel.fetchDrinks()
             }
         }
     }
 }
 
-struct DishCard: View {
-    let dish: FirestoreDish
+struct DrinkCard: View {
+    let drink: FirestoreDrink
 
     var body: some View {
         HairlineCard {
             VStack(alignment: .leading, spacing: 12) {
-                RemoteDishImageView(urlString: dish.imageURL, height: 160, cornerRadius: 8)
+                RemoteDishImageView(urlString: drink.imageURL, height: 160, cornerRadius: 8)
 
-                Text(dish.name)
+                Text(drink.name)
                     .font(MomentsStyle.systemMedium(16))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text(dish.pairing)
+                Text(drink.pairing)
                     .font(MomentsStyle.systemLight(13))
                     .foregroundColor(MomentsStyle.secondaryText)
 
                 HStack(spacing: 6) {
-                    ForEach(dish.tags, id: \.self) { tag in
+                    ForEach(drink.tags, id: \.self) { tag in
                         PillTag(label: tag)
                     }
                 }
@@ -119,28 +119,28 @@ struct DishCard: View {
     }
 }
 
-struct DishDetailView: View {
-    let dish: FirestoreDish
+struct DrinkDetailView: View {
+    let drink: FirestoreDrink
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 ParallaxHeader(height: 320, coordinateSpace: "scroll") {
-                    RemoteDishImageView(urlString: dish.imageURL, height: 320, cornerRadius: 0)
+                    RemoteDishImageView(urlString: drink.imageURL, height: 320, cornerRadius: 0)
                 }
 
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(dish.name)
+                        Text(drink.name)
                             .font(MomentsStyle.georgiaItalic(26))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text(dish.pairing)
+                        Text(drink.pairing)
                             .font(MomentsStyle.systemLight(14))
                             .foregroundColor(MomentsStyle.secondaryText)
 
                         HStack(spacing: 6) {
-                            ForEach(dish.tags, id: \.self) { tag in
+                            ForEach(drink.tags, id: \.self) { tag in
                                 PillTag(label: tag)
                             }
                         }
@@ -157,7 +157,7 @@ struct DishDetailView: View {
                             .foregroundColor(MomentsStyle.primaryText)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            ForEach(dish.ingredients, id: \.self) { ingredient in
+                            ForEach(drink.ingredients, id: \.self) { ingredient in
                                 HStack(alignment: .top, spacing: 12) {
                                     Circle()
                                         .fill(MomentsStyle.primaryText)
@@ -182,7 +182,7 @@ struct DishDetailView: View {
                             .foregroundColor(MomentsStyle.primaryText)
 
                         VStack(alignment: .leading, spacing: 16) {
-                            ForEach(Array(dish.instructions.enumerated()), id: \.offset) { index, step in
+                            ForEach(Array(drink.instructions.enumerated()), id: \.offset) { index, step in
                                 HStack(alignment: .top, spacing: 14) {
                                     Text("\(index + 1)")
                                         .font(MomentsStyle.systemMedium(14))
@@ -210,7 +210,7 @@ struct DishDetailView: View {
 
 #Preview {
     NavigationStack {
-        FoodView()
-            .environment(FoodViewModel())
+        DrinksView()
+            .environment(DrinksViewModel())
     }
 }

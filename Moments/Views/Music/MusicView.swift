@@ -30,14 +30,6 @@ struct MusicView: View {
             }
         }
         .background(MomentsStyle.background)
-        .refreshable {
-            if musicViewModel.isConnected {
-                await musicViewModel.fetchPlaylists()
-            }
-        }
-        .navigationDestination(for: String.self) { playlistID in
-            PlaylistDetailView(playlistID: playlistID)
-        }
     }
 
     // MARK: - Connected Content
@@ -56,43 +48,10 @@ struct MusicView: View {
             .padding(.bottom, 28)
         }
 
-        // Playlists header
-        Text("YOUR PLAYLISTS")
-            .font(.system(size: 10, weight: .light))
-            .tracking(3)
+        Text("Connected to Spotify")
+            .font(MomentsStyle.systemLight(14))
             .foregroundColor(MomentsStyle.secondaryText)
             .padding(.horizontal, 24)
-            .padding(.bottom, 14)
-
-        if musicViewModel.isLoading && musicViewModel.playlists.isEmpty {
-            HStack {
-                Spacer()
-                ProgressView()
-                Spacer()
-            }
-            .padding(.top, 40)
-        } else if let error = musicViewModel.errorMessage, musicViewModel.playlists.isEmpty {
-            Text(error)
-                .font(MomentsStyle.systemLight(13))
-                .foregroundColor(.red.opacity(0.8))
-                .padding(.horizontal, 24)
-        } else {
-            VStack(spacing: 0) {
-                ForEach(musicViewModel.playlists) { playlist in
-                    NavigationLink(value: playlist.id) {
-                        PlaylistRow(playlist: playlist)
-                    }
-                    .buttonStyle(.plain)
-
-                    if playlist.id != musicViewModel.playlists.last?.id {
-                        Rectangle()
-                            .frame(height: 0.5)
-                            .foregroundColor(MomentsStyle.border)
-                            .padding(.horizontal, 24)
-                    }
-                }
-            }
-        }
     }
 
     // MARK: - Connect Prompt
@@ -267,55 +226,6 @@ struct NowPlayingCard: View {
                     .font(.system(size: 32, weight: .light))
                     .foregroundColor(MomentsStyle.inactive)
             )
-    }
-}
-
-// MARK: - Playlist Row
-
-struct PlaylistRow: View {
-    let playlist: SpotifyPlaylistItem
-
-    var body: some View {
-        HStack(spacing: 14) {
-            // Artwork
-            RemoteStorageImageView(urlString: playlist.artworkURL?.absoluteString) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(MomentsStyle.surfaceSecondary)
-                    .overlay(
-                        Image(systemName: "music.note.list")
-                            .font(.system(size: 16, weight: .light))
-                            .foregroundColor(MomentsStyle.inactive)
-                    )
-            }
-            .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(playlist.name)
-                    .font(MomentsStyle.systemMedium(15))
-                    .foregroundColor(MomentsStyle.primaryText)
-
-                if let description = playlist.description, !description.isEmpty {
-                    Text(description)
-                        .font(MomentsStyle.systemLight(12))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                        .lineLimit(1)
-                }
-
-                Text("\(playlist.trackCount) songs")
-                    .font(.system(size: 10, weight: .light))
-                    .foregroundColor(MomentsStyle.inactive)
-                    .padding(.top, 1)
-            }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .light))
-                .foregroundColor(MomentsStyle.inactive)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 14)
     }
 }
 

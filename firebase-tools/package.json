@@ -1,0 +1,12 @@
+{
+  "name": "moments-tools",
+  "private": true,
+  "scripts": {
+    "seed:food": "node scripts/seed_food.js",
+    "seed:drinks": "node scripts/seed_drinks.js",
+    "seed:app-content": "node scripts/seed_app_content.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

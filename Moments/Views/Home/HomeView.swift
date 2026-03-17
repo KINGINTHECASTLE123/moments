@@ -4,88 +4,187 @@ enum HomeDestination: Hashable {
     case mainTabs(MomentsTab)
     case profile
     case settings
+    case createMoment
+    case liveMoment
+}
+
+enum HeaderFontStyle {
+    case georgiaItalic
+    case helveticaBold
+    case spaceGrotesk
 }
 
 struct HomeView: View {
     @Environment(AppContentViewModel.self) private var appContentViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(MomentPlannerViewModel.self) private var planner
     @State private var path = NavigationPath()
     @State private var showProfile = false
 
+    var headerFontStyle: HeaderFontStyle = .georgiaItalic
+
+    private let spacing: CGFloat = 6
+
+    // MARK: - Font helpers
+
+    private var headerFont: Font {
+        switch headerFontStyle {
+        case .georgiaItalic:  return MomentsStyle.georgiaItalic(38)
+        case .helveticaBold:  return MomentsStyle.helveticaBold(34)
+        case .spaceGrotesk:   return MomentsStyle.spaceGrotesk(34)
+        }
+    }
+
+    private var headerText: String {
+        switch headerFontStyle {
+        case .georgiaItalic:  return "moments"
+        case .helveticaBold:  return "MOMENTS"
+        case .spaceGrotesk:   return "MOMENTS"
+        }
+    }
+
+    private var tileFont: Font {
+        switch headerFontStyle {
+        case .georgiaItalic:  return MomentsStyle.georgiaItalic(18)
+        case .helveticaBold:  return MomentsStyle.helveticaBold(16)
+        case .spaceGrotesk:   return MomentsStyle.spaceGrotesk(16)
+        }
+    }
+
+    private func tileLabel(_ title: String) -> String {
+        switch headerFontStyle {
+        case .georgiaItalic:  return title
+        case .helveticaBold:  return title.uppercased()
+        case .spaceGrotesk:   return title.uppercased()
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Navbar
-                    HomeNavBar(
-                        profileImageURL: userViewModel.currentUser?.profileImageURL,
-                        initials: userViewModel.currentUser?.initials ?? "M",
-                        onProfile: { showProfile = true },
-                        onSettings: { path.append(HomeDestination.settings) }
-                    )
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .padding(.bottom, 24)
+            VStack(spacing: 0) {
+                // Header
+                HStack(alignment: .center) {
+                    Text(headerText)
+                        .font(headerFont)
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .tracking(headerFontStyle == .georgiaItalic ? 0 : 2)
 
-                    // Stacked content boxes
-                    VStack(spacing: 16) {
-                        // Games — hero card (primary feature)
-                        HomeHeroCard(
-                            title: "Games",
-                            subtitle: "Break the ice, spark the night",
-                            icon: "dice",
-                            badge: "6 games",
-                            imageURL: appContentViewModel.homeGamesHeroImageURL
-                        ) {
-                            path.append(HomeDestination.mainTabs(.games))
+                    Spacer()
+
+                    Button {
+                        if planner.isActive {
+                            path.append(HomeDestination.liveMoment)
+                        } else {
+                            path.append(HomeDestination.createMoment)
                         }
+                    } label: {
+                        Image(systemName: planner.isActive ? "sparkles" : "plus")
+                            .font(.system(size: planner.isActive ? 22 : 30, weight: .regular))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 46, height: 46)
+                            .background(MomentsStyle.surfaceSecondary)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, spacing + 15)
+                .padding(.top, 6)
+                .padding(.bottom, 8)
 
-                        // Two-column row: Food & Music
-                        HStack(spacing: 14) {
-                            HomeSquareCard(
-                                title: "Food & Drinks",
-                                subtitle: "Curated pairings",
-                                icon: "fork.knife"
+                // Bento Grid
+                GeometryReader { geo in
+                    let safeW = geo.size.width.isFinite ? max(0, geo.size.width) : 0
+                    let safeH = geo.size.height.isFinite ? max(0, geo.size.height) : 0
+                    let totalW = max(0, safeW - (spacing * 2))
+                    let colW = max(0, (totalW - spacing) / 2)
+
+                    // Left: Games 60%, Community 40%
+                    let gamesH = max(0, (safeH - spacing) * 0.60)
+                    let communityH = max(0, (safeH - spacing) * 0.40)
+
+                    // Right: 3 equal tiles
+                    let rightTileH = max(0, (safeH - (spacing * 2)) / 3)
+
+                    HStack(alignment: .top, spacing: spacing) {
+                        // Left column
+                        VStack(spacing: spacing) {
+                            BentoTile(
+                                title: tileLabel("Games"),
+                                imageURL: appContentViewModel.gamesImageURL,
+                                titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.food))
+                                path.append(HomeDestination.mainTabs(.games))
                             }
+                            .frame(height: gamesH)
 
-                            HomeSquareCard(
-                                title: "Music",
-                                subtitle: "Set the mood",
-                                icon: "music.note"
+                            BentoTile(
+                                title: tileLabel("Community"),
+                                imageURL: appContentViewModel.communityImageURL,
+                                titleFont: tileFont
+                            ) {
+                                path.append(HomeDestination.mainTabs(.community))
+                            }
+                            .frame(height: communityH)
+                        }
+                        .frame(width: colW)
+
+                        // Right column
+                        VStack(spacing: spacing) {
+                            BentoTile(
+                                title: tileLabel("Music"),
+                                imageURL: appContentViewModel.musicImageURL,
+                                titleFont: tileFont
                             ) {
                                 path.append(HomeDestination.mainTabs(.music))
                             }
-                        }
+                            .frame(height: rightTileH)
 
-                        // Community — wide card
-                        HomeWideCard(
-                            title: "Community",
-                            subtitle: "See what's happening around you",
-                            icon: "person.2",
-                            itemCount: "4 new posts"
-                        ) {
-                            path.append(HomeDestination.mainTabs(.community))
-                        }
+                            BentoTile(
+                                title: tileLabel("Drinks"),
+                                imageURL: appContentViewModel.drinksImageURL,
+                                titleFont: tileFont
+                            ) {
+                                path.append(HomeDestination.mainTabs(.drinks))
+                            }
+                            .frame(height: rightTileH)
 
-                        // Profile — compact card
-                        HomeWideCard(
-                            title: "Profile",
-                            subtitle: "Your moments, your people",
-                            icon: "person.crop.circle",
-                            itemCount: "12 moments",
-                            profileImageURL: userViewModel.currentUser?.profileImageURL,
-                            profileInitials: userViewModel.currentUser?.initials ?? "M"
-                        ) {
-                            path.append(HomeDestination.profile)
+                            BentoTile(
+                                title: tileLabel("Food"),
+                                imageURL: appContentViewModel.foodImageURL,
+                                titleFont: tileFont
+                            ) {
+                                path.append(HomeDestination.mainTabs(.food))
+                            }
+                            .frame(height: rightTileH)
                         }
+                        .frame(width: colW)
                     }
-                    .padding(.horizontal, 24)
-
-                    // Bottom breathing room
-                    Spacer(minLength: 40)
+                    .padding(.horizontal, spacing)
                 }
+
+                // Bottom Bar
+                HStack {
+                    Button {
+                        showProfile = true
+                    } label: {
+                        profileButtonLabel
+                    }
+
+                    Spacer()
+
+                    Button {
+                        path.append(HomeDestination.settings)
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 20, weight: .regular))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                            .frame(width: 54, height: 54)
+                            .background(MomentsStyle.surfaceSecondary)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, spacing + 15)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
             }
             .background(MomentsStyle.background)
             .navigationBarHidden(true)
@@ -94,6 +193,8 @@ struct HomeView: View {
                 case .mainTabs(let initialTab): MainTabView(initialTab: initialTab)
                 case .profile: ProfileView()
                 case .settings: SettingsView()
+                case .createMoment: CreateMomentView()
+                case .liveMoment: LiveMomentView()
                 }
             }
         }
@@ -104,7 +205,41 @@ struct HomeView: View {
             await appContentViewModel.fetchContentIfNeeded()
         }
     }
+
+    // MARK: - Profile Button
+
+    @ViewBuilder
+    private var profileButtonLabel: some View {
+        if let imageURL = userViewModel.currentUser?.profileImageURL, !imageURL.isEmpty {
+            RemoteStorageImageView(urlString: imageURL) {
+                profileInitialsView
+            }
+            .frame(width: 54, height: 54)
+            .clipShape(Circle())
+        } else {
+            profileInitialsView
+                .frame(width: 54, height: 54)
+                .clipShape(Circle())
+        }
+    }
+
+    private var profileInitialsView: some View {
+        ZStack {
+            Circle().fill(MomentsStyle.surfaceSecondary)
+            if let user = userViewModel.currentUser {
+                Text(user.initials)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(MomentsStyle.secondaryText)
+            } else {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 20, weight: .regular))
+                    .foregroundColor(MomentsStyle.secondaryText)
+            }
+        }
+    }
 }
+
+// MARK: - Profile Cover
 
 struct ProfileCoverView: View {
     @Environment(\.dismiss) private var dismiss
@@ -128,230 +263,81 @@ struct ProfileCoverView: View {
     }
 }
 
-// MARK: - Navbar
+// MARK: - Bento Tile
 
-struct HomeNavBar: View {
-    let profileImageURL: String?
-    let initials: String
-    var onProfile: () -> Void
-    var onSettings: () -> Void
-
-    var body: some View {
-        HStack {
-            // Profile avatar
-            Button(action: onProfile) {
-                UserAvatarView(
-                    imageURL: profileImageURL,
-                    fallbackText: initials,
-                    size: 34
-                )
-            }
-
-            Spacer()
-
-            // Wordmark
-            Text("moments")
-                .font(MomentsStyle.georgiaItalic(22))
-                .foregroundColor(MomentsStyle.primaryText)
-
-            Spacer()
-
-            // Settings gear
-            Button(action: onSettings) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 18, weight: .light))
-                    .foregroundColor(MomentsStyle.primaryText)
-            }
-        }
-    }
-}
-
-// MARK: - Hero Card (full width, tall)
-
-struct HomeHeroCard: View {
+private struct BentoTile: View {
     let title: String
-    let subtitle: String
-    let icon: String
-    var badge: String? = nil
-    var imageURL: String? = nil
-    var imageName: String? = nil
-    var action: () -> Void
+    let imageURL: String?
+    var titleFont: Font = MomentsStyle.georgiaItalic(18)
+    var bottomInset: CGFloat = 14
+    let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 0) {
-                // Image area
-                Group {
-                    if imageURL != nil {
+        Button {
+            Haptics.select()
+            action()
+        } label: {
+            GeometryReader { geo in
+                let w = geo.size.width.isFinite ? max(0, geo.size.width) : 0
+                let h = geo.size.height.isFinite ? max(0, geo.size.height) : 0
+
+                ZStack(alignment: .bottomLeading) {
+                    // Background image
+                    if let imageURL, !imageURL.isEmpty {
                         RemoteStorageImageView(urlString: imageURL) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(MomentsStyle.surfaceSecondary)
-                                .overlay(
-                                    Image(systemName: icon)
-                                        .font(.system(size: 36, weight: .light))
-                                        .foregroundColor(MomentsStyle.inactive)
-                                )
+                            Rectangle().fill(MomentsStyle.surfaceSecondary)
                         }
-                        .frame(height: 200)
+                        .frame(width: w, height: h)
                         .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if let imageName {
-                        Image(imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 200)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else {
-                        RoundedRectangle(cornerRadius: 8)
+                        Rectangle()
                             .fill(MomentsStyle.surfaceSecondary)
-                            .frame(height: 200)
-                            .overlay(
-                                Image(systemName: icon)
-                                    .font(.system(size: 36, weight: .light))
-                                    .foregroundColor(MomentsStyle.inactive)
-                            )
                     }
-                }
-                .padding(.bottom, 18)
 
-                HStack(alignment: .firstTextBaseline) {
-                    Text(title)
-                        .font(MomentsStyle.georgiaItalic(28))
-                        .foregroundColor(MomentsStyle.primaryText)
-
-                    Spacer()
-
-                    if let badge {
-                        Text(badge.uppercased())
-                            .font(.system(size: 9, weight: .light))
-                            .tracking(2)
-                            .foregroundColor(MomentsStyle.secondaryText)
-                    }
-                }
-
-                Text(subtitle)
-                    .font(MomentsStyle.systemLight(13))
-                    .foregroundColor(MomentsStyle.secondaryText)
-                    .padding(.top, 4)
-
-                // Arrow
-                HStack {
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .light))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                }
-                .padding(.top, 14)
-            }
-            .padding(20)
-            .background(MomentsStyle.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)
-                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Square Card (half width)
-
-struct HomeSquareCard: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .light))
-                    .foregroundColor(MomentsStyle.primaryText)
-
-                Spacer()
-
-                Text(title)
-                    .font(MomentsStyle.georgiaItalic(18))
-                    .foregroundColor(MomentsStyle.primaryText)
-
-                Text(subtitle)
-                    .font(MomentsStyle.systemLight(11))
-                    .foregroundColor(MomentsStyle.secondaryText)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 150)
-            .padding(18)
-            .background(MomentsStyle.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)
-                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Wide Card
-
-struct HomeWideCard: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    let itemCount: String
-    var profileImageURL: String? = nil
-    var profileInitials: String? = nil
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(title)
-                        .font(MomentsStyle.georgiaItalic(24))
-                        .foregroundColor(MomentsStyle.primaryText)
-
-                    Text(subtitle)
-                        .font(MomentsStyle.systemLight(12))
-                        .foregroundColor(MomentsStyle.secondaryText)
-
-                    Text(itemCount.uppercased())
-                        .font(.system(size: 9, weight: .light))
-                        .tracking(2)
-                        .foregroundColor(MomentsStyle.secondaryText)
-                        .padding(.top, 8)
-                }
-
-                Spacer()
-
-                if let initials = profileInitials {
-                    UserAvatarView(
-                        imageURL: profileImageURL,
-                        fallbackText: initials,
-                        size: 48
+                    // Gradient for text legibility
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.35),
+                            .init(color: .black.opacity(0.5), location: 1.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-                } else {
-                    Image(systemName: icon)
-                        .font(.system(size: 32, weight: .light))
-                        .foregroundColor(MomentsStyle.inactive)
+
+                    // Title
+                    Text(title)
+                        .font(titleFont)
+                        .foregroundColor(.white)
+                        .tracking(1)
+                        .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 1)
+                        .padding(.leading, 12)
+                        .padding(.bottom, bottomInset)
                 }
+                .frame(width: w, height: h)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-            .padding(20)
-            .background(MomentsStyle.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: MomentsStyle.cardRadius)
-                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-            )
         }
         .buttonStyle(.plain)
     }
 }
 
-#Preview {
+#Preview("Current – Georgia Italic") {
     HomeView()
+        .environment(AppContentViewModel())
+        .environment(UserViewModel())
+        .environment(MomentPlannerViewModel())
 }
+#Preview("Option A – Helvetica Bold All Caps") {
+    HomeView(headerFontStyle: .helveticaBold)
+        .environment(AppContentViewModel())
+        .environment(UserViewModel())
+        .environment(MomentPlannerViewModel())
+}
+
+#Preview("Option B – Space Grotesk All Caps") {
+    HomeView(headerFontStyle: .spaceGrotesk)
+        .environment(AppContentViewModel())
+        .environment(UserViewModel())
+        .environment(MomentPlannerViewModel())
+}
+

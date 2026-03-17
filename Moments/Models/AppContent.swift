@@ -5,5 +5,9 @@ struct LandingContent: Sendable {
 }
 
 struct HomeContent: Sendable {
-    let gamesHeroImageURL: String
+    let gamesImageURL: String?
+    let musicImageURL: String?
+    let foodImageURL: String?
+    let drinksImageURL: String?
+    let communityImageURL: String?
 }

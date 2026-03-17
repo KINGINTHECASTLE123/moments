@@ -1,0 +1,153 @@
+[
+  {
+    "id": "burrata-heirloom-tomato",
+    "name": "Burrata & Heirloom Tomato",
+    "pairing": "Pairs with Aperol Spritz",
+    "tags": ["Vegetarian"],
+    "imagePath": "content/food/burrata.jpg",
+    "ingredients": [
+      "1 large burrata (200g)",
+      "4 heirloom tomatoes, mixed colors",
+      "Fresh basil leaves",
+      "Extra virgin olive oil",
+      "Flaky sea salt & black pepper",
+      "1 tbsp aged balsamic vinegar",
+      "1 tbsp capers"
+    ],
+    "instructions": [
+      "Slice the heirloom tomatoes into thick wedges and arrange on a serving plate.",
+      "Season the tomatoes generously with flaky sea salt and let rest for 5 minutes.",
+      "Place the burrata in the center of the plate and tear it open gently.",
+      "Scatter fresh basil leaves over the dish and sprinkle with capers.",
+      "Drizzle with extra virgin olive oil and aged balsamic vinegar.",
+      "Finish with freshly cracked black pepper and serve immediately."
+    ],
+    "category": "Starters",
+    "sortOrder": 1
+  },
+  {
+    "id": "tuna-tartare",
+    "name": "Tuna Tartare",
+    "pairing": "Pairs with Dry Martini",
+    "tags": ["Seafood"],
+    "imagePath": "content/food/tuna-tartare.jpg",
+    "ingredients": [
+      "300g sushi-grade tuna, finely diced",
+      "2 spring onions, thinly sliced",
+      "1 tbsp sesame oil",
+      "1 tbsp soy sauce",
+      "1 tsp freshly grated ginger",
+      "1 tbsp sesame seeds",
+      "Juice of 1 lime",
+      "Micro herbs for garnish"
+    ],
+    "instructions": [
+      "Dice the sushi-grade tuna into small, even cubes and place in a chilled bowl.",
+      "Combine sesame oil, soy sauce, grated ginger, and lime juice in a small bowl.",
+      "Pour the dressing over the tuna and gently fold to combine without crushing.",
+      "Cover and refrigerate for 10 minutes to let the flavors meld.",
+      "Use a ring mold to plate the tartare neatly in the center of a chilled plate.",
+      "Top with sliced spring onions, sesame seeds, and micro herbs. Serve immediately."
+    ],
+    "category": "Starters",
+    "sortOrder": 2
+  },
+  {
+    "id": "slow-roasted-lamb",
+    "name": "Slow-Roasted Lamb",
+    "pairing": "Pairs with Bordeaux Red",
+    "tags": ["Meat"],
+    "imagePath": "content/food/lamb.jpg",
+    "ingredients": [
+      "1.5kg lamb shoulder, bone-in",
+      "6 cloves garlic, crushed",
+      "Fresh rosemary & thyme sprigs",
+      "2 tbsp olive oil",
+      "1 cup red wine",
+      "Salt & pepper to taste"
+    ],
+    "instructions": [
+      "Preheat oven to 160°C. Score the lamb and rub with garlic, herbs, oil, salt and pepper.",
+      "Place in a roasting pan and pour in the red wine.",
+      "Cover tightly with foil and roast for 4 hours until fork-tender.",
+      "Remove foil for the last 30 minutes to crisp the exterior.",
+      "Rest for 15 minutes before serving. Spoon pan juices over the lamb."
+    ],
+    "category": "Mains",
+    "sortOrder": 1
+  },
+  {
+    "id": "pan-seared-sea-bass",
+    "name": "Pan-Seared Sea Bass",
+    "pairing": "Pairs with Sancerre",
+    "tags": ["Seafood"],
+    "imagePath": "content/food/sea-bass.jpg",
+    "ingredients": [
+      "2 sea bass fillets, skin-on",
+      "2 tbsp olive oil",
+      "2 tbsp butter",
+      "1 lemon, halved",
+      "Fresh dill",
+      "Salt & pepper"
+    ],
+    "instructions": [
+      "Pat the sea bass fillets dry and season with salt and pepper.",
+      "Heat olive oil in a pan over high heat until shimmering.",
+      "Place fillets skin-side down and press gently. Cook for 4 minutes.",
+      "Flip and add butter, lemon halves, and dill to the pan.",
+      "Baste the fillets with the butter for 2 minutes until just cooked through.",
+      "Serve immediately with a squeeze of charred lemon."
+    ],
+    "category": "Mains",
+    "sortOrder": 2
+  },
+  {
+    "id": "dark-chocolate-fondant",
+    "name": "Dark Chocolate Fondant",
+    "pairing": "Pairs with Espresso Martini",
+    "tags": ["Indulgent"],
+    "imagePath": "content/food/chocolate-fondant.jpg",
+    "ingredients": [
+      "200g dark chocolate (70%)",
+      "150g butter",
+      "3 eggs + 3 yolks",
+      "75g caster sugar",
+      "50g plain flour",
+      "Cocoa powder for dusting"
+    ],
+    "instructions": [
+      "Melt the chocolate and butter together over a bain-marie. Let cool slightly.",
+      "Whisk the eggs, yolks, and sugar until pale and thick.",
+      "Fold the chocolate mixture into the eggs, then sift in the flour and fold gently.",
+      "Pour into buttered, cocoa-dusted ramekins. Chill for at least 1 hour.",
+      "Bake at 200°C for 12 minutes. The center should be soft.",
+      "Turn out onto plates and serve immediately with vanilla ice cream."
+    ],
+    "category": "Desserts",
+    "sortOrder": 1
+  },
+  {
+    "id": "panna-cotta-berries",
+    "name": "Panna Cotta & Berries",
+    "pairing": "Pairs with Moscato d'Asti",
+    "tags": ["Light"],
+    "imagePath": "content/food/panna-cotta.jpg",
+    "ingredients": [
+      "500ml double cream",
+      "75g caster sugar",
+      "1 vanilla pod, split",
+      "2 sheets leaf gelatine",
+      "Mixed berries for serving",
+      "Mint leaves for garnish"
+    ],
+    "instructions": [
+      "Soak the gelatine sheets in cold water for 5 minutes.",
+      "Heat the cream, sugar, and vanilla seeds gently until just simmering.",
+      "Remove from heat, squeeze excess water from gelatine, and stir into the cream.",
+      "Pour into moulds and refrigerate for at least 4 hours until set.",
+      "Turn out onto plates and top with fresh mixed berries and mint."
+    ],
+    "category": "Desserts",
+    "sortOrder": 2
+  }
+]

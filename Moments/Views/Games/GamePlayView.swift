@@ -6,33 +6,58 @@ struct GamePlayView: View {
     @State private var prompts: [GamePrompt] = []
     @Environment(\.dismiss) private var dismiss
 
-    private var currentPrompt: GamePrompt? {
-        guard currentIndex < prompts.count else { return nil }
-        return prompts[currentIndex]
-    }
-
     private var isLastCard: Bool {
         currentIndex >= prompts.count - 1
+    }
+
+    private var instructionText: String {
+        switch game.number {
+        case 1: "Read both options aloud. Everyone picks a side."
+        case 2: "Hold phone to your forehead. Friends describe the word."
+        case 3: "Act it out. No talking, no pointing."
+        case 4: "Read aloud. Everyone takes a turn answering."
+        case 5: "Read the prompt. Be bold."
+        case 6: "Complete the dare — or face the penalty."
+        default: ""
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // Card counter
-            Text("\(currentIndex + 1) of \(prompts.count)")
-                .font(MomentsStyle.systemLight(13))
-                .foregroundColor(MomentsStyle.secondaryText)
-                .padding(.top, 16)
-                .padding(.bottom, 24)
+            HStack(spacing: 0) {
+                Text("\(currentIndex + 1)")
+                    .contentTransition(.numericText())
+                Text(" of \(prompts.count)")
+            }
+            .font(MomentsStyle.systemLight(13))
+            .foregroundColor(MomentsStyle.secondaryText)
+            .animation(.easeInOut(duration: 0.2), value: currentIndex)
+            .padding(.top, 16)
+            .padding(.bottom, 24)
 
             Spacer()
 
-            // Prompt card
-            if let prompt = currentPrompt {
-                if prompt.optionA != nil {
-                    WouldYouRatherCard(prompt: prompt)
-                } else {
-                    StandardPromptCard(prompt: prompt, gameName: game.name)
+            // Swipeable card stack
+            if !prompts.isEmpty {
+                SwipeableCardStack(totalCount: prompts.count, currentIndex: $currentIndex) { index in
+                    let prompt = prompts[index]
+                    if prompt.optionA != nil {
+                        WouldYouRatherCard(prompt: prompt, appearID: currentIndex)
+                    } else {
+                        StandardPromptCard(prompt: prompt, gameName: game.name)
+                    }
                 }
+            }
+
+            // Instruction text
+            if !instructionText.isEmpty {
+                Text(instructionText)
+                    .font(MomentsStyle.systemLight(12))
+                    .foregroundColor(MomentsStyle.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 20)
             }
 
             Spacer()
@@ -41,10 +66,9 @@ struct GamePlayView: View {
             VStack(spacing: 14) {
                 Button {
                     if !isLastCard {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            currentIndex += 1
-                        }
+                        currentIndex += 1
                     } else {
+                        Haptics.success()
                         dismiss()
                     }
                 } label: {
@@ -130,6 +154,11 @@ private struct StandardPromptCard: View {
 
 private struct WouldYouRatherCard: View {
     let prompt: GamePrompt
+    let appearID: Int
+
+    @State private var showOptionA = false
+    @State private var showOr = false
+    @State private var showOptionB = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -148,10 +177,13 @@ private struct WouldYouRatherCard: View {
                 .padding(24)
                 .frame(maxWidth: .infinity)
             }
+            .offset(x: showOptionA ? 0 : -10)
+            .opacity(showOptionA ? 1 : 0)
 
             Text("or")
                 .font(MomentsStyle.georgiaItalic(16))
                 .foregroundColor(MomentsStyle.secondaryText)
+                .opacity(showOr ? 1 : 0)
 
             HairlineCard {
                 VStack(spacing: 12) {
@@ -168,8 +200,32 @@ private struct WouldYouRatherCard: View {
                 .padding(24)
                 .frame(maxWidth: .infinity)
             }
+            .offset(x: showOptionB ? 0 : 10)
+            .opacity(showOptionB ? 1 : 0)
         }
         .padding(.horizontal, 24)
+        .onChange(of: appearID) { _, _ in
+            resetAndAnimate()
+        }
+        .onAppear {
+            resetAndAnimate()
+        }
+    }
+
+    private func resetAndAnimate() {
+        showOptionA = false
+        showOr = false
+        showOptionB = false
+
+        withAnimation(.easeOut(duration: 0.3).delay(0.1)) {
+            showOptionA = true
+        }
+        withAnimation(.easeOut(duration: 0.3).delay(0.25)) {
+            showOr = true
+        }
+        withAnimation(.easeOut(duration: 0.3).delay(0.35)) {
+            showOptionB = true
+        }
     }
 }
 

@@ -21,6 +21,18 @@ struct PostDetailView: View {
         return false
     }
 
+    private var resolvedAuthorImageURL: String? {
+        if let imageURL = latestPost.authorProfileImageURL, !imageURL.isEmpty {
+            return imageURL
+        }
+
+        if case .signedIn(let uid) = authViewModel.authState, latestPost.authorUID == uid {
+            return userViewModel.currentUser?.profileImageURL
+        }
+
+        return nil
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -28,7 +40,7 @@ struct PostDetailView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         HStack(spacing: 12) {
                             UserAvatarView(
-                                imageURL: latestPost.authorProfileImageURL,
+                                imageURL: resolvedAuthorImageURL,
                                 fallbackText: String(latestPost.authorUsername.prefix(1)).uppercased(),
                                 size: 40
                             )
@@ -62,21 +74,12 @@ struct PostDetailView: View {
                         }
 
                         HStack(spacing: 24) {
-                            Button {
+                            AnimatedLikeButton(isLiked: latestPost.isLiked, count: latestPost.likes) {
                                 guard case .signedIn(let uid) = authViewModel.authState, let postID = latestPost.id else { return }
                                 Task {
                                     await communityViewModel.toggleLike(postID: postID, uid: uid)
                                 }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: latestPost.isLiked ? "heart.fill" : "heart")
-                                        .font(.system(size: 16, weight: .light))
-                                    Text("\(latestPost.likes)")
-                                        .font(MomentsStyle.systemRegular(13))
-                                }
-                                .foregroundColor(latestPost.isLiked ? MomentsStyle.primaryText : MomentsStyle.secondaryText)
                             }
-                            .buttonStyle(.plain)
 
                             HStack(spacing: 6) {
                                 Image(systemName: "bubble.right")
@@ -214,6 +217,7 @@ struct PostDetailView: View {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 guard let postID = latestPost.id else { return }
+                Haptics.warning()
                 Task {
                     await communityViewModel.deletePost(postID: postID)
                     if communityViewModel.errorMessage == nil {
