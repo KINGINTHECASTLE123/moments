@@ -318,6 +318,7 @@ private struct BentoTile: View {
             }
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
     }
 }
 

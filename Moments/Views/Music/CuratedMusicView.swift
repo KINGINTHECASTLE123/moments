@@ -35,6 +35,7 @@ struct CuratedMusicView: View {
                     )
                     .padding(.horizontal, 24)
                     .padding(.bottom, 28)
+
                 }
 
                 // Tonight's Pick

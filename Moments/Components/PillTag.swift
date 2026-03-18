@@ -8,7 +8,7 @@ struct PillTag: View {
         Text(label.uppercased())
             .font(.system(size: 9, weight: .light))
             .tracking(2)
-            .foregroundColor(filled ? .white : MomentsStyle.primaryText)
+            .foregroundColor(filled ? MomentsStyle.background : MomentsStyle.primaryText)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
             .background(filled ? MomentsStyle.primaryText : Color.clear)

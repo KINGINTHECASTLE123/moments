@@ -20,6 +20,17 @@ final class SpotifyService: NSObject {
     private(set) var accessToken: String?
     private(set) var isConnected = false
 
+    /// Action to execute once the App Remote re-establishes a connection.
+    private var pendingPlaybackAction: (() -> Void)?
+
+    /// Whether we have already attempted a session renewal for this connection cycle,
+    /// to avoid an infinite renewal loop.
+    private var hasAttemptedRenewal = false
+
+    /// Consecutive silent reconnect attempts since last successful connection.
+    private var reconnectAttempts = 0
+    private let maxReconnectAttempts = 3
+
     private lazy var configuration: SPTConfiguration = {
         let config = SPTConfiguration(clientID: Self.clientID, redirectURL: Self.redirectURI)
         config.playURI = ""
@@ -91,6 +102,7 @@ final class SpotifyService: NSObject {
         restoreToken()
         guard let _ = accessToken else { return }
         guard !appRemote.isConnected else { return }
+        hasAttemptedRenewal = false
         appRemote.connect()
     }
 
@@ -110,23 +122,52 @@ final class SpotifyService: NSObject {
     // MARK: - Playback Controls
 
     func play(uri: String) {
-        appRemote.playerAPI?.play(uri, callback: defaultCallback)
+        performWhenConnected { [weak self] in
+            self?.appRemote.playerAPI?.play(uri, callback: self?.defaultCallback)
+        }
     }
 
     func pause() {
-        appRemote.playerAPI?.pause(defaultCallback)
+        performWhenConnected { [weak self] in
+            self?.appRemote.playerAPI?.pause(self?.defaultCallback)
+        }
     }
 
     func resume() {
-        appRemote.playerAPI?.resume(defaultCallback)
+        performWhenConnected { [weak self] in
+            self?.appRemote.playerAPI?.resume(self?.defaultCallback)
+        }
     }
 
     func skipNext() {
-        appRemote.playerAPI?.skip(toNext: defaultCallback)
+        performWhenConnected { [weak self] in
+            self?.appRemote.playerAPI?.skip(toNext: self?.defaultCallback)
+        }
     }
 
     func skipPrevious() {
-        appRemote.playerAPI?.skip(toPrevious: defaultCallback)
+        performWhenConnected { [weak self] in
+            self?.appRemote.playerAPI?.skip(toPrevious: self?.defaultCallback)
+        }
+    }
+
+    /// Runs `action` immediately if the App Remote is connected, otherwise
+    /// stores it and triggers a reconnect so it fires once the connection is ready.
+    private func performWhenConnected(_ action: @escaping () -> Void) {
+        if appRemote.isConnected {
+            action()
+        } else {
+            pendingPlaybackAction = action
+            // appRemote.connect() only works if Spotify is already active in
+            // the background. authorizeAndPlayURI("") brings Spotify to the
+            // foreground and re-establishes the App Remote connection without
+            // changing the currently playing track (empty URI = resume current).
+            if accessToken != nil {
+                appRemote.authorizeAndPlayURI("")
+            } else {
+                connect()
+            }
+        }
     }
 
     func getPlayerState() {
@@ -139,8 +180,13 @@ final class SpotifyService: NSObject {
     // MARK: - Private Helpers
 
     private var defaultCallback: SPTAppRemoteCallback {
-        { _, error in
-            if let error { Log.spotify.error("Playback error: \(error.localizedDescription, privacy: .private)") }
+        { [weak self] _, error in
+            if let error {
+                Log.spotify.error("Playback error: \(error.localizedDescription, privacy: .private)")
+            } else {
+                // Re-fetch player state after every command so the UI stays in sync.
+                self?.getPlayerState()
+            }
         }
     }
 
@@ -230,21 +276,64 @@ final class SpotifyService: NSObject {
 extension SpotifyService: SPTAppRemoteDelegate {
     func appRemoteDidEstablishConnection(_ appRemote: SPTAppRemote) {
         isConnected = true
+        reconnectAttempts = 0
+        hasAttemptedRenewal = false
 
         appRemote.playerAPI?.delegate = self
-        appRemote.playerAPI?.subscribe(toPlayerState: { _, error in
-            if let error { Log.spotify.error("Subscribe error: \(error.localizedDescription, privacy: .private)") }
+        appRemote.playerAPI?.subscribe(toPlayerState: { [weak self] _, error in
+            if let error {
+                Log.spotify.error("Subscribe error: \(error.localizedDescription, privacy: .private)")
+            } else {
+                // Fetch current state immediately after subscribing so the UI
+                // reflects what is actually playing, including after a reconnect.
+                self?.getPlayerState()
+            }
         })
+
+        // Flush any queued playback command that was waiting for reconnection.
+        if let action = pendingPlaybackAction {
+            pendingPlaybackAction = nil
+            action()
+        }
+
         onConnected?()
     }
 
     func appRemote(_ appRemote: SPTAppRemote, didDisconnectWithError error: Error?) {
         isConnected = false
-        onDisconnected?(error)
+        pendingPlaybackAction = nil
+
+        // Code -2001 is "End of stream" — Spotify's TCP connection timed out
+        // because the Spotify app went to background. Silently reconnect.
+        // Any other code (e.g. -2000 "Stream error") means Spotify is not
+        // reachable and we surface the disconnect to the ViewModel immediately.
+        let isEndOfStream = (error as NSError?)?.code == -2001
+        if isEndOfStream, accessToken != nil, reconnectAttempts < maxReconnectAttempts {
+            reconnectAttempts += 1
+            Log.spotify.debug("End of stream — scheduling silent reconnect (attempt \(self.reconnectAttempts)/\(self.maxReconnectAttempts))")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                guard let self, !self.appRemote.isConnected else { return }
+                self.appRemote.connect()
+            }
+        } else {
+            reconnectAttempts = 0
+            onDisconnected?(error)
+        }
     }
 
     func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) {
         isConnected = false
+
+        // If the token may have expired, attempt a silent renewal once before
+        // surfacing the failure to the caller. The sessionManager will call
+        // didRenew (which reconnects) or didFailWith (which surfaces the error).
+        if !hasAttemptedRenewal, accessToken != nil {
+            hasAttemptedRenewal = true
+            sessionManager.renewSession()
+            return
+        }
+
+        pendingPlaybackAction = nil
         onDisconnected?(error)
     }
 }
@@ -271,6 +360,8 @@ extension SpotifyService: SPTSessionManagerDelegate {
         accessToken = session.accessToken
         appRemote.connectionParameters.accessToken = session.accessToken
         KeychainService.save(key: Self.keychainTokenKey, data: session.accessToken)
+        // Reconnect with the fresh token so any pending playback action can fire.
+        appRemote.connect()
     }
 }
 

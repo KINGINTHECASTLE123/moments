@@ -140,18 +140,23 @@ struct NowPlayingCard: View {
     var body: some View {
         HairlineCard {
             VStack(spacing: 16) {
-                // Album art
-                if let artworkURL = playerState.artworkURL {
-                    RemoteStorageImageView(urlString: artworkURL.absoluteString) {
-                        artworkPlaceholder
+                // Album art — explicit GeometryReader so the image never
+                // overflows its bounds and overlaps the controls below.
+                GeometryReader { geo in
+                    let side = geo.size.width
+                    Group {
+                        if let artworkURL = playerState.artworkURL {
+                            RemoteStorageImageView(urlString: artworkURL.absoluteString) {
+                                artworkPlaceholder
+                            }
+                        } else {
+                            artworkPlaceholder
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(1, contentMode: .fit)
+                    .frame(width: side, height: side)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    artworkPlaceholder
-                        .aspectRatio(1, contentMode: .fit)
                 }
+                .aspectRatio(1, contentMode: .fit)
 
                 // Track info
                 VStack(spacing: 4) {
@@ -194,25 +199,29 @@ struct NowPlayingCard: View {
                     }
                 }
 
-                // Playback controls
+                // Playback controls — use simultaneousGesture so taps are
+                // never swallowed by a surrounding NavigationLink or ScrollView.
                 HStack(spacing: 40) {
-                    Button(action: onPrevious) {
-                        Image(systemName: "backward.end")
-                            .font(.system(size: 18, weight: .light))
-                            .foregroundColor(MomentsStyle.primaryText)
-                    }
+                    Image(systemName: "backward.end")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(TapGesture().onEnded { onPrevious() })
 
-                    Button(action: onPlayPause) {
-                        Image(systemName: playerState.isPaused ? "play.circle.fill" : "pause.circle.fill")
-                            .font(.system(size: 40, weight: .light))
-                            .foregroundColor(MomentsStyle.primaryText)
-                    }
+                    Image(systemName: playerState.isPaused ? "play.circle.fill" : "pause.circle.fill")
+                        .font(.system(size: 40, weight: .light))
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(TapGesture().onEnded { onPlayPause() })
 
-                    Button(action: onNext) {
-                        Image(systemName: "forward.end")
-                            .font(.system(size: 18, weight: .light))
-                            .foregroundColor(MomentsStyle.primaryText)
-                    }
+                    Image(systemName: "forward.end")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                        .simultaneousGesture(TapGesture().onEnded { onNext() })
                 }
             }
         }

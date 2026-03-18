@@ -32,44 +32,44 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Content
-            Group {
-                switch selectedTab {
-                case .games: GamesView()
-                case .food: FoodView()
-                case .drinks: DrinksView()
-                case .music: CuratedMusicView()
-                case .community: CommunityView()
-                }
+        Group {
+            switch selectedTab {
+            case .games: GamesView()
+            case .food: FoodView()
+            case .drinks: DrinksView()
+            case .music: CuratedMusicView()
+            case .community: CommunityView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            // Hairline separator
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(MomentsStyle.border)
-
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             // Custom tab bar
-            HStack {
-                ForEach(MomentsTab.allCases, id: \.self) { tab in
-                    Button {
-                        Haptics.select()
-                        selectedTab = tab
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 20, weight: .light))
-                            Text(tab.title)
-                                .font(.system(size: 10, weight: .light))
+            VStack(spacing: 0) {
+                // Hairline separator
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(MomentsStyle.border)
+
+                HStack {
+                    ForEach(MomentsTab.allCases, id: \.self) { tab in
+                        Button {
+                            Haptics.select()
+                            selectedTab = tab
+                        } label: {
+                            VStack(spacing: 4) {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: 20, weight: .light))
+                                Text(tab.title)
+                                    .font(.system(size: 10, weight: .light))
+                            }
+                            .foregroundColor(selectedTab == tab ? MomentsStyle.primaryText : MomentsStyle.inactive)
+                            .frame(maxWidth: .infinity)
                         }
-                        .foregroundColor(selectedTab == tab ? MomentsStyle.primaryText : MomentsStyle.inactive)
-                        .frame(maxWidth: .infinity)
                     }
                 }
+                .padding(.top, 10)
+                .padding(.bottom, 8)
             }
-            .padding(.top, 10)
-            .padding(.bottom, 4)
             .background(MomentsStyle.cardBackground)
         }
     }
