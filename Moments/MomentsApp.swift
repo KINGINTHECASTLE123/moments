@@ -52,6 +52,7 @@ struct MomentsApp: App {
             if newPhase == .active {
                 musicViewModel.connect()
                 Task {
+                    await ImageCache.shared.cleanupDiskCache()
                     await notificationService.refreshAuthorizationStatus()
                     let remindersEnabled = UserDefaults.standard.object(forKey: StorageKeys.momentReminders) as? Bool ?? true
                     let notificationsEnabled = UserDefaults.standard.object(forKey: StorageKeys.notificationsEnabled) as? Bool ?? true

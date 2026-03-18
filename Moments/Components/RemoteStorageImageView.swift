@@ -17,6 +17,7 @@ struct RemoteDishImageView: View {
         .frame(maxWidth: .infinity)
         .clipped()
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .accessibilityLabel("Food image")
     }
 }
 

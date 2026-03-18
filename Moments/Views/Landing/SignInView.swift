@@ -100,6 +100,7 @@ struct SignInView: View {
                             .clipShape(Capsule())
                     }
                 }
+                .buttonStyle(MomentsPrimaryButtonStyle())
                 .disabled(authViewModel.isLoading)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)

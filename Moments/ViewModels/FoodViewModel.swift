@@ -12,6 +12,16 @@ final class FoodViewModel {
         self.foodService = foodService ?? FoodService()
     }
 
+    private func setError(_ message: String) {
+        errorMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            if self.errorMessage == message {
+                self.errorMessage = nil
+            }
+        }
+    }
+
     func fetchDishes() async {
         isLoading = true
         errorMessage = nil
@@ -30,7 +40,7 @@ final class FoodViewModel {
             let imageURLs = dishes.compactMap(\.imageURL)
             await ImageCache.shared.preload(urls: imageURLs)
         } catch {
-            errorMessage = "Food load failed: \(error.localizedDescription)"
+            setError("Food load failed: \(error.localizedDescription)")
         }
 
         isLoading = false

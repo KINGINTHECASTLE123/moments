@@ -28,6 +28,7 @@ service cloud.firestore {
       data.username is string &&
       data.username.size() > 0 &&
       data.username.size() <= 30 &&
+      data.username.matches('^[a-zA-Z0-9._]{2,30}$') &&
       data.email is string &&
       data.email.size() > 3 &&
       data.bio is string &&

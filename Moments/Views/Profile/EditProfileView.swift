@@ -20,7 +20,9 @@ struct EditProfileView: View {
 
     private var isSaveDisabled: Bool {
         fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        username.trimmingCharacters(in: .whitespacesAndNewlines)
+            .wholeMatch(of: AppConstants.usernamePattern) == nil
     }
 
     var body: some View {
@@ -157,6 +159,7 @@ struct EditProfileView: View {
                         .background(MomentsStyle.primaryText)
                         .clipShape(Capsule())
                 }
+                .buttonStyle(MomentsPrimaryButtonStyle())
                 .disabled(isSaveDisabled)
                 .opacity(isSaveDisabled ? 0.6 : 1)
                 .padding(.horizontal, 24)

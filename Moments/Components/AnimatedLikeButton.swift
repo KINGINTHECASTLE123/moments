@@ -53,6 +53,8 @@ struct AnimatedLikeButton: View {
             .foregroundColor(isLiked ? MomentsStyle.primaryText : MomentsStyle.secondaryText)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(isLiked ? "Unlike, \(count) likes" : "Like, \(count) likes")
+        .accessibilityAddTraits(.isButton)
     }
 
     private func spawnParticles() {

@@ -65,6 +65,7 @@ struct CreateMomentView: View {
         }
         .background(MomentsStyle.background)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 if step > 0 {

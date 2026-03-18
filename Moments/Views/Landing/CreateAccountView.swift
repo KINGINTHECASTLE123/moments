@@ -60,8 +60,11 @@ struct CreateAccountView: View {
 
                 Button {
                     if step == 0 {
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                         guard !fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                              !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                              !trimmedEmail.isEmpty,
+                              trimmedEmail.contains("@"),
+                              trimmedEmail.contains("."),
                               password.count >= 6 else {
                             authViewModel.errorMessage = password.count < 6 && !password.isEmpty
                                 ? "Password must be at least 6 characters."
@@ -71,8 +74,13 @@ struct CreateAccountView: View {
                         authViewModel.errorMessage = nil
                         withAnimation(.easeInOut(duration: 0.3)) { step += 1 }
                     } else if step == 1 {
-                        guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedUsername.isEmpty else {
                             authViewModel.errorMessage = "Please choose a username."
+                            return
+                        }
+                        guard trimmedUsername.wholeMatch(of: AppConstants.usernamePattern) != nil else {
+                            authViewModel.errorMessage = "Username can only contain letters, numbers, dots, and underscores (2-30 characters)."
                             return
                         }
                         authViewModel.errorMessage = nil
@@ -111,6 +119,7 @@ struct CreateAccountView: View {
                             .clipShape(Capsule())
                     }
                 }
+                .buttonStyle(MomentsPrimaryButtonStyle())
                 .disabled(authViewModel.isLoading)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)

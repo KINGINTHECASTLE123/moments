@@ -29,24 +29,83 @@ struct CommunityView: View {
                 .padding(.bottom, 24)
 
                 if let errorMessage = communityViewModel.errorMessage, communityViewModel.posts.isEmpty {
-                    Text(errorMessage)
-                        .font(MomentsStyle.systemLight(13))
-                        .foregroundColor(.red.opacity(0.8))
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 16)
+                    VStack(spacing: 16) {
+                        Image(systemName: "wifi.slash")
+                            .font(.system(size: 36, weight: .light))
+                            .foregroundColor(MomentsStyle.inactive)
+
+                        Text("Couldn't load posts")
+                            .font(MomentsStyle.systemMedium(16))
+                            .foregroundColor(MomentsStyle.primaryText)
+
+                        Text(errorMessage)
+                            .font(MomentsStyle.systemLight(13))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                            .multilineTextAlignment(.center)
+
+                        Button {
+                            guard case .signedIn(let uid) = authViewModel.authState else { return }
+                            Task { await communityViewModel.fetchPosts(currentUID: uid) }
+                        } label: {
+                            Text("TRY AGAIN")
+                                .font(.system(size: 10, weight: .light))
+                                .tracking(3)
+                                .foregroundColor(MomentsStyle.primaryText)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(MomentsStyle.border, lineWidth: 0.5)
+                                )
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
                 }
 
-                VStack(spacing: 14) {
-                    ForEach(communityViewModel.posts) { post in
-                        NavigationLink {
-                            PostDetailView(post: post)
-                        } label: {
-                            PostCard(post: post)
+                if communityViewModel.posts.isEmpty && !communityViewModel.isLoading {
+                    VStack(spacing: 20) {
+                        Image(systemName: "bubble.left.and.text.bubble.right")
+                            .font(.system(size: 40, weight: .light))
+                            .foregroundColor(MomentsStyle.inactive)
+
+                        Text("No posts yet")
+                            .font(MomentsStyle.georgiaItalic(22))
+                            .foregroundColor(MomentsStyle.primaryText)
+
+                        Text("Be the first to share something with the community")
+                            .font(MomentsStyle.systemLight(14))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                            .multilineTextAlignment(.center)
+
+                        Button { showCreatePost = true } label: {
+                            Text("CREATE POST")
+                                .font(.system(size: 10, weight: .light))
+                                .tracking(3)
+                                .foregroundColor(MomentsStyle.background)
+                                .padding(.horizontal, 28)
+                                .padding(.vertical, 14)
+                                .background(MomentsStyle.primaryText)
+                                .clipShape(Capsule())
                         }
-                        .buttonStyle(.plain)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 60)
+                } else {
+                    VStack(spacing: 14) {
+                        ForEach(communityViewModel.posts) { post in
+                            NavigationLink {
+                                PostDetailView(post: post)
+                            } label: {
+                                PostCard(post: post)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
                 }
-                .padding(.horizontal, 24)
 
                 Spacer(minLength: 32)
             }
@@ -187,6 +246,8 @@ struct PostCard: View {
         } message: {
             Text("This post will be permanently deleted.")
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(post.authorUsername) posted: \(post.body). \(post.likes) likes, \(post.commentCount) comments")
     }
 }
 

@@ -23,7 +23,7 @@ struct ProfileView: View {
 
                     VStack(spacing: 4) {
                         Text(profile?.fullName ?? "Moments User")
-                            .font(MomentsStyle.georgiaItalic(26))
+                            .font(.system(size: 26, weight: .light, design: .serif))
                             .foregroundColor(MomentsStyle.primaryText)
 
                         Text("@\(profile?.username ?? "moments")")
@@ -98,10 +98,23 @@ struct ProfileView: View {
 
                 // Favorites section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("FAVORITES")
-                        .font(.system(size: 10, weight: .light))
-                        .tracking(3)
-                        .foregroundColor(MomentsStyle.secondaryText)
+                    HStack(spacing: 8) {
+                        Text("FAVORITES")
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                            .foregroundColor(MomentsStyle.secondaryText)
+
+                        Text("COMING SOON")
+                            .font(.system(size: 7, weight: .light))
+                            .tracking(2)
+                            .foregroundColor(MomentsStyle.inactive)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .overlay(
+                                Capsule()
+                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
+                            )
+                    }
 
                     VStack(spacing: 12) {
                         ProfileFavoriteRow(icon: "fork.knife", title: "Negroni & Burrata", subtitle: "Most made pairing")
@@ -119,10 +132,23 @@ struct ProfileView: View {
 
                 // Recent moments
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("RECENT MOMENTS")
-                        .font(.system(size: 10, weight: .light))
-                        .tracking(3)
-                        .foregroundColor(MomentsStyle.secondaryText)
+                    HStack(spacing: 8) {
+                        Text("RECENT MOMENTS")
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                            .foregroundColor(MomentsStyle.secondaryText)
+
+                        Text("COMING SOON")
+                            .font(.system(size: 7, weight: .light))
+                            .tracking(2)
+                            .foregroundColor(MomentsStyle.inactive)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .overlay(
+                                Capsule()
+                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
+                            )
+                    }
 
                     VStack(spacing: 12) {
                         MomentCard(

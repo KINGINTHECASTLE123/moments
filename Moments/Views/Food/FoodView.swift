@@ -36,21 +36,45 @@ struct FoodView: View {
             .padding(.bottom, 20)
 
             if foodViewModel.isLoading && foodViewModel.dishes.isEmpty {
-                Spacer()
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                Spacer()
+                ScrollView {
+                    VStack(spacing: 14) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            SkeletonCard(height: 240)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 32)
+                }
             } else if let errorMessage = foodViewModel.errorMessage, foodViewModel.dishes.isEmpty {
                 Spacer()
-                VStack(spacing: 12) {
-                    Text("Food is unavailable.")
+                VStack(spacing: 16) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundColor(MomentsStyle.inactive)
+
+                    Text("Couldn't load dishes")
                         .font(MomentsStyle.systemMedium(16))
                         .foregroundColor(MomentsStyle.primaryText)
 
                     Text(errorMessage)
                         .font(MomentsStyle.systemLight(13))
-                        .foregroundColor(.red.opacity(0.8))
+                        .foregroundColor(MomentsStyle.secondaryText)
                         .multilineTextAlignment(.center)
+
+                    Button {
+                        Task { await foodViewModel.fetchDishes() }
+                    } label: {
+                        Text("TRY AGAIN")
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .overlay(
+                                Capsule()
+                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
+                            )
+                    }
                 }
                 .padding(.horizontal, 24)
                 Spacer()
@@ -120,6 +144,7 @@ struct DishCard: View {
 }
 
 struct DishDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     let dish: FirestoreDish
 
     var body: some View {
@@ -205,6 +230,24 @@ struct DishDetailView: View {
         .background(MomentsStyle.background)
         .navigationBarTitleDisplayMode(.inline)
         .ignoresSafeArea(.container, edges: .top)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                }
+            }
+            ToolbarItem(placement: .principal) {
+                Text(dish.name)
+                    .font(MomentsStyle.georgiaItalic(18))
+                    .foregroundColor(MomentsStyle.primaryText)
+            }
+        }
     }
 }
 

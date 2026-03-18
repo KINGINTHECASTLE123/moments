@@ -3,11 +3,12 @@ import FirebaseFirestore
 protocol PostServiceProtocol: Sendable {
     func fetchPosts(limit: Int) async throws -> [FirestorePost]
     func createPost(_ post: FirestorePost) async throws -> String
-    func updatePost(postID: String, data: [String: Any]) async throws
+    func setPostImageURL(postID: String, imageURL: String) async throws
     func toggleLike(postID: String, uid: String, isCurrentlyLiked: Bool) async throws
     func fetchComments(postID: String) async throws -> [FirestoreComment]
     func addComment(postID: String, comment: FirestoreComment) async throws
     func deletePost(postID: String) async throws
+    func deleteComment(postID: String, commentID: String) async throws
     func postsStream(limit: Int) -> AsyncStream<[FirestorePost]>
     func commentsStream(postID: String) -> AsyncStream<[FirestoreComment]>
 }
@@ -29,8 +30,8 @@ final class PostService: PostServiceProtocol {
         return ref.documentID
     }
 
-    func updatePost(postID: String, data: [String: Any]) async throws {
-        try await postsCollection.document(postID).updateData(data)
+    func setPostImageURL(postID: String, imageURL: String) async throws {
+        try await postsCollection.document(postID).updateData(["imageURL": imageURL])
     }
 
     func toggleLike(postID: String, uid: String, isCurrentlyLiked: Bool) async throws {
@@ -82,6 +83,16 @@ final class PostService: PostServiceProtocol {
 
         // Then delete the post itself
         try await postsCollection.document(postID).delete()
+    }
+
+    func deleteComment(postID: String, commentID: String) async throws {
+        try await postsCollection.document(postID)
+            .collection("comments")
+            .document(commentID)
+            .delete()
+        try await postsCollection.document(postID).updateData([
+            "commentCount": FieldValue.increment(Int64(-1))
+        ])
     }
 
     func postsStream(limit: Int = 20) -> AsyncStream<[FirestorePost]> {

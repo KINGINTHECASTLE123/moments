@@ -27,7 +27,7 @@ final class AuthViewModel {
 
     private func listenForAuthChanges() {
         listenerHandle = authService.addStateDidChangeListener { [weak self] user in
-            let newState: AuthState = user != nil ? .signedIn(uid: user!.uid) : .signedOut
+            let newState: AuthState = user.map { .signedIn(uid: $0.uid) } ?? .signedOut
             Task { @MainActor [weak self] in
                 self?.authState = newState
             }

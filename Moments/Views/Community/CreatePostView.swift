@@ -168,7 +168,11 @@ struct CreatePostView: View {
                     .disabled(!canPost)
                 }
             }
-            .onAppear { isBodyFocused = true }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isBodyFocused = true
+                }
+            }
             .onChange(of: selectedPhoto) { _, newValue in
                 Task {
                     if let data = try? await newValue?.loadTransferable(type: Data.self) {

@@ -1,3 +1,4 @@
+import CryptoKit
 import FirebaseStorage
 import UIKit
 
@@ -120,13 +121,29 @@ actor ImageCache {
         }
     }
 
+    // MARK: - Cache Cleanup
+
+    /// Removes disk cache entries older than the specified interval.
+    func cleanupDiskCache(olderThan maxAge: TimeInterval = 7 * 24 * 60 * 60) {
+        guard let files = try? fileManager.contentsOfDirectory(
+            at: diskCacheURL,
+            includingPropertiesForKeys: [.contentModificationDateKey]
+        ) else { return }
+
+        let cutoff = Date().addingTimeInterval(-maxAge)
+
+        for fileURL in files {
+            guard let attributes = try? fileManager.attributesOfItem(atPath: fileURL.path),
+                  let modDate = attributes[.modificationDate] as? Date,
+                  modDate < cutoff else { continue }
+            try? fileManager.removeItem(at: fileURL)
+        }
+    }
+
     // MARK: - Helpers
 
     private func cacheKey(for urlString: String) -> String {
-        // Stable hash-based filename to avoid special characters in paths
-        let hash = urlString.utf8.reduce(into: UInt64(5381)) { hash, byte in
-            hash = hash &* 33 &+ UInt64(byte)
-        }
-        return String(hash, radix: 36)
+        let digest = SHA256.hash(data: Data(urlString.utf8))
+        return digest.prefix(16).map { String(format: "%02x", $0) }.joined()
     }
 }

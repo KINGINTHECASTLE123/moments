@@ -65,9 +65,9 @@ struct LandingView: View {
                     // Create profile
                     Button(action: onCreateAccount) {
                         Text("CREATE PROFILE")
-                            .font(.system(size: 10, weight: .light))
+                            .font(.system(size: 12, weight: .regular))
                             .tracking(3)
-                            .foregroundColor(MomentsStyle.primaryText)
+                            .foregroundColor(Color(red: 0.1, green: 0.094, blue: 0.078)) // always dark text
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(.white)
@@ -80,14 +80,14 @@ struct LandingView: View {
                     // Sign in
                     Button(action: onSignIn) {
                         Text("SIGN IN")
-                            .font(.system(size: 10, weight: .light))
+                            .font(.system(size: 12, weight: .regular))
                             .tracking(3)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .overlay(
                                 Capsule()
-                                    .stroke(Color.white.opacity(0.5), lineWidth: 0.5)
+                                    .stroke(Color.white.opacity(0.7), lineWidth: 1)
                             )
                     }
                     .opacity(showContent ? 1 : 0)

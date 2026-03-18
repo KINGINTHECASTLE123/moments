@@ -17,12 +17,22 @@ final class UserViewModel {
         self.storageService = storageService ?? StorageService()
     }
 
+    private func setError(_ message: String) {
+        errorMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            if self.errorMessage == message {
+                self.errorMessage = nil
+            }
+        }
+    }
+
     func fetchCurrentUser(uid: String) async {
         isLoading = true
         do {
             currentUser = try await userService.fetchUser(uid: uid)
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
         isLoading = false
     }
@@ -60,7 +70,7 @@ final class UserViewModel {
             try await userService.createUser(profile, uid: uid)
             currentUser = profile
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
         isLoading = false
     }
@@ -94,7 +104,7 @@ final class UserViewModel {
             currentUser?.bio = bio
             currentUser?.interests = interests
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
         isLoading = false
     }
@@ -104,7 +114,7 @@ final class UserViewModel {
             try await userService.deleteAllUserData(uid: uid)
             currentUser = nil
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
     }
 

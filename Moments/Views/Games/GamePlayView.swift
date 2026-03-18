@@ -4,6 +4,7 @@ struct GamePlayView: View {
     let game: Game
     @State private var currentIndex = 0
     @State private var prompts: [GamePrompt] = []
+
     @Environment(\.dismiss) private var dismiss
 
     private var isLastCard: Bool {
@@ -40,10 +41,15 @@ struct GamePlayView: View {
 
             // Swipeable card stack
             if !prompts.isEmpty {
-                SwipeableCardStack(totalCount: prompts.count, currentIndex: $currentIndex) { index in
+                let isWYR = prompts[currentIndex].optionA != nil
+                SwipeableCardStack(
+                    totalCount: prompts.count,
+                    currentIndex: $currentIndex,
+                    maxVisible: isWYR ? 1 : 3
+                ) { index in
                     let prompt = prompts[index]
                     if prompt.optionA != nil {
-                        WouldYouRatherCard(prompt: prompt, appearID: currentIndex)
+                        WouldYouRatherCard(prompt: prompt)
                     } else {
                         StandardPromptCard(prompt: prompt, gameName: game.name)
                     }
@@ -129,6 +135,8 @@ private struct StandardPromptCard: View {
     let prompt: GamePrompt
     let gameName: String
 
+    @State private var appeared = false
+
     var body: some View {
         HairlineCard {
             VStack(spacing: 20) {
@@ -144,9 +152,16 @@ private struct StandardPromptCard: View {
                     .lineSpacing(6)
             }
             .padding(24)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 280)
         }
         .padding(.horizontal, 24)
+        .scaleEffect(appeared ? 1.0 : 0.96)
+        .opacity(appeared ? 1.0 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                appeared = true
+            }
+        }
     }
 }
 
@@ -154,78 +169,44 @@ private struct StandardPromptCard: View {
 
 private struct WouldYouRatherCard: View {
     let prompt: GamePrompt
-    let appearID: Int
-
-    @State private var showOptionA = false
-    @State private var showOr = false
-    @State private var showOptionB = false
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             HairlineCard {
-                VStack(spacing: 12) {
+                VStack(spacing: 6) {
                     Text("A")
-                        .font(MomentsStyle.georgiaItalic(18))
+                        .font(MomentsStyle.georgiaItalic(13))
                         .foregroundColor(MomentsStyle.secondaryText)
-
                     Text(prompt.optionA ?? "")
-                        .font(MomentsStyle.systemLight(16))
+                        .font(MomentsStyle.systemLight(17))
                         .foregroundColor(MomentsStyle.primaryText)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                 }
                 .padding(24)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 120)
             }
-            .offset(x: showOptionA ? 0 : -10)
-            .opacity(showOptionA ? 1 : 0)
 
             Text("or")
-                .font(MomentsStyle.georgiaItalic(16))
+                .font(MomentsStyle.georgiaItalic(14))
                 .foregroundColor(MomentsStyle.secondaryText)
-                .opacity(showOr ? 1 : 0)
 
             HairlineCard {
-                VStack(spacing: 12) {
+                VStack(spacing: 6) {
                     Text("B")
-                        .font(MomentsStyle.georgiaItalic(18))
+                        .font(MomentsStyle.georgiaItalic(13))
                         .foregroundColor(MomentsStyle.secondaryText)
-
                     Text(prompt.optionB ?? "")
-                        .font(MomentsStyle.systemLight(16))
+                        .font(MomentsStyle.systemLight(17))
                         .foregroundColor(MomentsStyle.primaryText)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                 }
                 .padding(24)
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 120)
             }
-            .offset(x: showOptionB ? 0 : 10)
-            .opacity(showOptionB ? 1 : 0)
         }
         .padding(.horizontal, 24)
-        .onChange(of: appearID) { _, _ in
-            resetAndAnimate()
-        }
-        .onAppear {
-            resetAndAnimate()
-        }
-    }
-
-    private func resetAndAnimate() {
-        showOptionA = false
-        showOr = false
-        showOptionB = false
-
-        withAnimation(.easeOut(duration: 0.3).delay(0.1)) {
-            showOptionA = true
-        }
-        withAnimation(.easeOut(duration: 0.3).delay(0.25)) {
-            showOr = true
-        }
-        withAnimation(.easeOut(duration: 0.3).delay(0.35)) {
-            showOptionB = true
-        }
     }
 }
 

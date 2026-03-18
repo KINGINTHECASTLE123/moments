@@ -3,21 +3,26 @@ import SwiftUI
 struct SwipeableCardStack<Content: View>: View {
     let totalCount: Int
     @Binding var currentIndex: Int
+    var maxVisible: Int = 3
     @ViewBuilder let cardContent: (Int) -> Content
 
     @GestureState private var dragOffset: CGFloat = 0
     @State private var swipeOffset: CGFloat = 0
-    @State private var didSwipe = false
-    @State private var cardID = UUID()
+    @State private var isAnimating = false
+    @State private var didHaptic = false
 
     private let swipeThreshold: CGFloat = 120
-    private let maxVisibleCards = 3
+    private var maxVisibleCards: Int { maxVisible }
+
+    private var dragProgress: CGFloat {
+        guard !isAnimating else { return 1 }
+        return min(abs(dragOffset) / swipeThreshold, 1)
+    }
 
     var body: some View {
         ZStack {
             ForEach(visibleIndices.reversed(), id: \.self) { index in
                 let depth = index - currentIndex
-
                 if depth == 0 {
                     topCard(index: index)
                 } else {
@@ -25,12 +30,8 @@ struct SwipeableCardStack<Content: View>: View {
                 }
             }
         }
-        .onChange(of: currentIndex) { _, _ in
-            cardID = UUID()
-        }
+        .animation(.easeInOut(duration: 0.22), value: currentIndex)
     }
-
-    // MARK: - Visible Indices
 
     private var visibleIndices: [Int] {
         let start = currentIndex
@@ -39,69 +40,92 @@ struct SwipeableCardStack<Content: View>: View {
         return Array(start..<end)
     }
 
-    // MARK: - Top Card
-
+    @ViewBuilder
     private func topCard(index: Int) -> some View {
+        let totalOffset = swipeOffset + dragOffset
         cardContent(index)
-            .id(cardID)
-            .offset(x: swipeOffset + dragOffset)
-            .rotationEffect(.degrees(Double(swipeOffset + dragOffset) / 25))
+            .offset(x: totalOffset)
+            .rotationEffect(.degrees(Double(totalOffset) / 40))
+            .transition(.asymmetric(
+                insertion: .opacity,
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
             .gesture(
                 DragGesture()
                     .updating($dragOffset) { value, state, _ in
+                        guard !isAnimating else { return }
                         state = value.translation.width
                     }
                     .onChanged { value in
-                        let total = value.translation.width
-                        if abs(total) > swipeThreshold && !didSwipe {
-                            didSwipe = true
+                        guard !isAnimating else { return }
+                        if abs(value.translation.width) > swipeThreshold && !didHaptic {
+                            didHaptic = true
                             Haptics.cardSwipe()
                         }
                     }
                     .onEnded { value in
+                        guard !isAnimating else { return }
                         let translation = value.translation.width
-                        if abs(translation) > swipeThreshold {
-                            let direction: CGFloat = translation > 0 ? 1 : -1
-                            withAnimation(.easeOut(duration: 0.25)) {
-                                swipeOffset = direction * 500
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                                swipeOffset = 0
-                                didSwipe = false
-                                if currentIndex < totalCount - 1 {
-                                    currentIndex += 1
-                                }
-                            }
+                        let predictedEnd = value.predictedEndTranslation.width
+                        let shouldSwipe = abs(translation) > swipeThreshold || abs(predictedEnd) > 300
+
+                        if shouldSwipe {
+                            animateSwipe(direction: translation > 0 ? 1 : -1)
                         } else {
                             Haptics.cardSettle()
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                                 swipeOffset = 0
                             }
-                            didSwipe = false
+                            didHaptic = false
                         }
                     }
             )
-            .transition(.opacity.combined(with: .offset(y: 8)))
-            .animation(.easeOut(duration: 0.2).delay(0.05), value: cardID)
             .zIndex(Double(maxVisibleCards))
     }
 
-    // MARK: - Background Card
-
+    @ViewBuilder
     private func backgroundCard(index: Int, depth: Int) -> some View {
-        let scale = 1.0 - 0.04 * Double(depth)
-        let opacity = depth == 1 ? 0.6 : 0.3
-        let yOffset = 6.0 * Double(depth)
-        let blur = 1.5 * Double(depth)
+        let baseScale: CGFloat   = depth == 1 ? 0.95 : 0.90
+        let baseOpacity: Double  = depth == 1 ? 0.75 : 0.45
+        let baseYOffset: CGFloat = depth == 1 ? 8    : 16
 
-        return cardContent(index)
+        let targetScale: CGFloat   = depth == 1 ? 1.0  : 0.95
+        let targetOpacity: Double  = depth == 1 ? 1.0  : 0.75
+        let targetYOffset: CGFloat = depth == 1 ? 0    : 8
+
+        let p = dragProgress
+        let scale   = baseScale   + (targetScale   - baseScale)   * p
+        let opacity = baseOpacity + (targetOpacity - baseOpacity) * p
+        let yOffset = baseYOffset + (targetYOffset - baseYOffset) * p
+        let blur: CGFloat = depth == 1 ? 0 : 1.0 * (1 - p)
+
+        cardContent(index)
             .scaleEffect(scale)
             .opacity(opacity)
             .offset(y: yOffset)
             .blur(radius: blur)
             .allowsHitTesting(false)
-            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: currentIndex)
+            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: dragProgress)
             .zIndex(Double(maxVisibleCards - depth))
+    }
+
+    // Called only from gesture swipes — NEXT button handles its own advance directly
+    func animateSwipe(direction: CGFloat) {
+        guard !isAnimating else { return }
+        isAnimating = true
+        didHaptic = false
+
+        withAnimation(.easeOut(duration: 0.25)) {
+            swipeOffset = direction * 600
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            swipeOffset = 0
+            if currentIndex < totalCount - 1 {
+                currentIndex += 1
+            }
+            isAnimating = false
+        }
     }
 }
 
@@ -121,6 +145,8 @@ struct SwipeableCardStack<Content: View>: View {
                 Text("\(index + 1) of \(prompts.count)")
                     .font(MomentsStyle.systemLight(13))
                     .foregroundColor(MomentsStyle.secondaryText)
+                    .contentTransition(.numericText())
+                    .animation(.easeInOut(duration: 0.2), value: index)
 
                 SwipeableCardStack(totalCount: prompts.count, currentIndex: $index) { i in
                     HairlineCard {
@@ -139,6 +165,5 @@ struct SwipeableCardStack<Content: View>: View {
             .background(MomentsStyle.background)
         }
     }
-
     return PreviewWrapper()
 }

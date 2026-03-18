@@ -10,6 +10,7 @@ final class CommunityViewModel {
     var isLoading = false
     var isCreatingPost = false
     var deletingPostIDs: Set<String> = []
+    var deletingCommentIDs: Set<String> = []
     var errorMessage: String?
 
     private var postsListenerTask: Task<Void, Never>?
@@ -26,6 +27,16 @@ final class CommunityViewModel {
         self.storageService = storageService ?? StorageService()
     }
 
+    private func setError(_ message: String) {
+        errorMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(5))
+            if self.errorMessage == message {
+                self.errorMessage = nil
+            }
+        }
+    }
+
     func fetchPosts(currentUID: String) async {
         isLoading = true
         do {
@@ -35,7 +46,7 @@ final class CommunityViewModel {
             }
             posts = fetched
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
         isLoading = false
     }
@@ -141,10 +152,10 @@ final class CommunityViewModel {
             if let imageData {
                 let compressed = ImageCompressor.compress(data: imageData, maxDimension: 1200) ?? imageData
                 let imageURL = try await storageService.uploadPostImage(uid: authorUID, postID: postID, imageData: compressed)
-                try await postService.updatePost(postID: postID, data: ["imageURL": imageURL])
+                try await postService.setPostImageURL(postID: postID, imageURL: imageURL)
             }
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
         isCreatingPost = false
     }
@@ -153,7 +164,7 @@ final class CommunityViewModel {
         do {
             return try await postService.fetchComments(postID: postID)
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
             return []
         }
     }
@@ -172,8 +183,32 @@ final class CommunityViewModel {
                 posts[index].commentCount += 1
             }
         } catch {
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
+    }
+
+    func deleteComment(postID: String, commentID: String) async {
+        guard !deletingCommentIDs.contains(commentID) else { return }
+        deletingCommentIDs.insert(commentID)
+
+        // Optimistic removal from live list
+        let removed = liveComments.first(where: { $0.id == commentID })
+        liveComments.removeAll(where: { $0.id == commentID })
+
+        do {
+            try await postService.deleteComment(postID: postID, commentID: commentID)
+            if let index = posts.firstIndex(where: { $0.id == postID }) {
+                posts[index].commentCount = max(0, posts[index].commentCount - 1)
+            }
+        } catch {
+            // Revert optimistic removal
+            if let removed {
+                liveComments.append(removed)
+                liveComments.sort { $0.createdAt < $1.createdAt }
+            }
+            setError(error.localizedDescription)
+        }
+        deletingCommentIDs.remove(commentID)
     }
 
     func deletePost(postID: String) async {
@@ -194,7 +229,7 @@ final class CommunityViewModel {
             let safeIndex = min(index, posts.count)
             posts.insert(removedPost, at: safeIndex)
             pendingDeletions.remove(postID)
-            errorMessage = error.localizedDescription
+            setError(error.localizedDescription)
         }
 
         deletingPostIDs.remove(postID)

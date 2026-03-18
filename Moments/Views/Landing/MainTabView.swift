@@ -42,6 +42,8 @@ struct MainTabView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity.animation(.easeInOut(duration: 0.15)))
+        .id(selectedTab)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             // Custom tab bar
             VStack(spacing: 0) {
@@ -64,6 +66,8 @@ struct MainTabView: View {
                             }
                             .foregroundColor(selectedTab == tab ? MomentsStyle.primaryText : MomentsStyle.inactive)
                             .frame(maxWidth: .infinity)
+                            .accessibilityLabel(tab.title)
+                            .accessibilityAddTraits(selectedTab == tab ? [.isButton, .isSelected] : .isButton)
                         }
                     }
                 }

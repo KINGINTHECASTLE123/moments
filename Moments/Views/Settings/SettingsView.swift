@@ -8,9 +8,6 @@ enum SettingsDestination: Hashable {
     case profileVisibility
     case blockedUsers
     case dataPrivacy
-    case helpCenter
-    case contactUs
-    case rateMoments
     case termsOfService
     case privacyPolicy
     case version
@@ -26,6 +23,7 @@ struct SettingsView: View {
     @AppStorage(StorageKeys.friendActivity) private var friendActivity = false
     @AppStorage(StorageKeys.darkMode) private var darkMode = false
     @AppStorage(StorageKeys.hapticsEnabled) private var haptics = true
+    @Environment(\.openURL) private var openURL
     @State private var showSignOutConfirm = false
     @State private var showDeleteConfirm = false
     @State private var showDeleteReauth = false
@@ -93,17 +91,23 @@ struct SettingsView: View {
 
                 // Support section
                 SettingsSection(title: "Support") {
-                    NavigationLink(value: SettingsDestination.helpCenter) {
+                    Button {
+                        openURL(URL(string: "mailto:momentsapp1@outlook.com?subject=Help")!)
+                    } label: {
                         SettingsRow(icon: "questionmark.circle", title: "Help Center", subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
-                    NavigationLink(value: SettingsDestination.contactUs) {
+                    Button {
+                        openURL(URL(string: "mailto:momentsapp1@outlook.com")!)
+                    } label: {
                         SettingsRow(icon: "envelope.open", title: "Contact Us", subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
-                    NavigationLink(value: SettingsDestination.rateMoments) {
+                    Button {
+                        openURL(URL(string: "itms-apps://itunes.apple.com/app/id6741511686?action=write-review")!)
+                    } label: {
                         SettingsRow(icon: "star", title: "Rate Moments", subtitle: nil)
                     }
                     .buttonStyle(.plain)
@@ -192,111 +196,7 @@ struct SettingsView: View {
             }
         }
         .navigationDestination(for: SettingsDestination.self) { destination in
-            switch destination {
-            case .editProfile:
-                EditProfileView()
-            case .email:
-                ChangeEmailView()
-            case .password:
-                ChangePasswordView()
-            case .connectedAccounts:
-                ConnectedAccountsView()
-            case .profileVisibility:
-                SettingsDetailView(
-                    title: "Profile Visibility",
-                    eyebrow: "Privacy",
-                    headline: "Control who sees your profile.",
-                    detailText: "Your profile is currently visible to friends only. Adjust visibility when you want to be more discoverable or keep things close."
-                )
-            case .blockedUsers:
-                SettingsDetailView(
-                    title: "Blocked Users",
-                    eyebrow: "Privacy",
-                    headline: "Review people you have blocked.",
-                    detailText: "Blocking removes visibility across community interactions and prevents new activity between you and those accounts."
-                )
-            case .dataPrivacy:
-                SettingsDetailView(
-                    title: "Data & Privacy",
-                    eyebrow: "Privacy",
-                    headline: "Manage the data attached to your account.",
-                    detailText: "You can request an export of your account information or start a deletion request if you want to remove your data from Moments."
-                )
-            case .helpCenter:
-                SettingsDetailView(
-                    title: "Help Center",
-                    eyebrow: "Support",
-                    headline: "Find answers fast.",
-                    detailText: "Browse setup guides, troubleshooting notes, and FAQs for account access, sharing, posting, and playlist features."
-                )
-            case .contactUs:
-                SettingsDetailView(
-                    title: "Contact Us",
-                    eyebrow: "Support",
-                    headline: "Get in touch with the team.",
-                    detailText: "For support requests, bug reports, or feedback, email us at momentsapp1@outlook.com. We aim to respond within 48 hours."
-                )
-            case .rateMoments:
-                SettingsDetailView(
-                    title: "Rate Moments",
-                    eyebrow: "Support",
-                    headline: "Share how the app feels to use.",
-                    detailText: "Ratings and short reviews help shape the product and make it easier for the right people to discover Moments."
-                )
-            case .termsOfService:
-                SettingsDetailView(
-                    title: "Terms of Service",
-                    eyebrow: "About",
-                    headline: "Terms of use for Moments.",
-                    detailText: """
-                    Last updated: March 2026
-
-                    By using Moments, you agree to these terms. You must be at least 13 years old to use this app.
-
-                    You are responsible for all content you post. Do not post content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable.
-
-                    We reserve the right to remove content or suspend accounts that violate these terms without prior notice.
-
-                    Your content remains yours. By posting, you grant Moments a non-exclusive license to display it within the app.
-
-                    The app is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the app.
-
-                    We may update these terms at any time. Continued use after changes constitutes acceptance.
-
-                    For questions, contact us at momentsapp1@outlook.com.
-                    """
-                )
-            case .privacyPolicy:
-                SettingsDetailView(
-                    title: "Privacy Policy",
-                    eyebrow: "About",
-                    headline: "How we handle your information.",
-                    detailText: """
-                    Last updated: March 2026
-
-                    Moments collects: your name, email address, profile photo, and content you post (text and images). This data is stored securely using Firebase (Google Cloud).
-
-                    We use your data solely to provide the app's functionality: authentication, profile display, and community features.
-
-                    We do not sell, share, or rent your personal data to third parties. We do not track you across other apps or websites.
-
-                    If you connect Spotify, we store an access token securely in your device's Keychain. We do not access your Spotify account data beyond playback control and playlist cover art.
-
-                    You can delete your account and all associated data at any time from Settings → Delete Account.
-
-                    We use no third-party analytics or advertising SDKs. The app does not contain ads.
-
-                    For data requests or questions, contact momentsapp1@outlook.com.
-                    """
-                )
-            case .version:
-                SettingsDetailView(
-                    title: "Version",
-                    eyebrow: "About",
-                    headline: "Current build",
-                    detailText: "Moments \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\nDesigned in Copenhagen with a focus on intimate social experiences."
-                )
-            }
+            SettingsDestinationView(destination: destination)
         }
         .alert("Sign Out", isPresented: $showSignOutConfirm) {
             Button("Cancel", role: .cancel) { }
@@ -354,6 +254,82 @@ struct SettingsView: View {
         } message: {
             Text("Enter your password to confirm account deletion.")
         }
+    }
+
+}
+
+// MARK: - Settings Content Strings
+
+private enum SettingsContent {
+    static let termsOfService = """
+        Last updated: March 2026
+
+        By using Moments, you agree to these terms. You must be at least 13 years old to use this app.
+
+        You are responsible for all content you post. Do not post content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable.
+
+        We reserve the right to remove content or suspend accounts that violate these terms without prior notice.
+
+        Your content remains yours. By posting, you grant Moments a non-exclusive license to display it within the app.
+
+        The app is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the app.
+
+        We may update these terms at any time. Continued use after changes constitutes acceptance.
+
+        For questions, contact us at momentsapp1@outlook.com.
+        """
+
+    static let privacyPolicy = """
+        Last updated: March 2026
+
+        Moments collects: your name, email address, profile photo, and content you post (text and images). This data is stored securely using Firebase (Google Cloud).
+
+        We use your data solely to provide the app's functionality: authentication, profile display, and community features.
+
+        We do not sell, share, or rent your personal data to third parties. We do not track you across other apps or websites.
+
+        If you connect Spotify, we store an access token securely in your device's Keychain. We do not access your Spotify account data beyond playback control and playlist cover art.
+
+        You can delete your account and all associated data at any time from Settings → Delete Account.
+
+        We use no third-party analytics or advertising SDKs. The app does not contain ads.
+
+        For data requests or questions, contact momentsapp1@outlook.com.
+        """
+}
+
+// MARK: - Settings Destination View
+
+struct SettingsDestinationView: View {
+    let destination: SettingsDestination
+
+    var body: some View {
+        switch destination {
+        case .editProfile:
+            EditProfileView()
+        case .email:
+            ChangeEmailView()
+        case .password:
+            ChangePasswordView()
+        case .connectedAccounts:
+            ConnectedAccountsView()
+        case .profileVisibility:
+            detail("Profile Visibility", eyebrow: "Privacy", headline: "Control who sees your profile.", text: "Your profile is currently visible to friends only. Adjust visibility when you want to be more discoverable or keep things close.")
+        case .blockedUsers:
+            detail("Blocked Users", eyebrow: "Privacy", headline: "Review people you have blocked.", text: "Blocking removes visibility across community interactions and prevents new activity between you and those accounts.")
+        case .dataPrivacy:
+            detail("Data & Privacy", eyebrow: "Privacy", headline: "Manage the data attached to your account.", text: "You can request an export of your account information or start a deletion request if you want to remove your data from Moments.")
+        case .termsOfService:
+            detail("Terms of Service", eyebrow: "About", headline: "Terms of use for Moments.", text: SettingsContent.termsOfService)
+        case .privacyPolicy:
+            detail("Privacy Policy", eyebrow: "About", headline: "How we handle your information.", text: SettingsContent.privacyPolicy)
+        case .version:
+            detail("Version", eyebrow: "About", headline: "Current build", text: "Moments \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\nDesigned in Copenhagen with a focus on intimate social experiences.")
+        }
+    }
+
+    private func detail(_ title: String, eyebrow: String, headline: String, text: String) -> SettingsDetailView {
+        SettingsDetailView(title: title, eyebrow: eyebrow, headline: headline, detailText: text)
     }
 }
 
@@ -416,6 +392,7 @@ struct SettingsRow: View {
                 .foregroundColor(MomentsStyle.inactive)
         }
         .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 

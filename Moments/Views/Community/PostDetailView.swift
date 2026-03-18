@@ -120,7 +120,11 @@ struct PostDetailView: View {
 
                     VStack(spacing: 0) {
                         ForEach(communityViewModel.liveComments) { comment in
-                            CommentRow(comment: comment)
+                            CommentRow(
+                                comment: comment,
+                                postID: latestPost.id ?? "",
+                                currentUID: { if case .signedIn(let uid) = authViewModel.authState { return uid }; return nil }()
+                            )
 
                             if comment.id != communityViewModel.liveComments.last?.id {
                                 Rectangle()
@@ -232,7 +236,15 @@ struct PostDetailView: View {
 }
 
 struct CommentRow: View {
+    @Environment(CommunityViewModel.self) private var communityViewModel
     let comment: FirestoreComment
+    let postID: String
+    let currentUID: String?
+
+    private var canDelete: Bool {
+        guard let uid = currentUID, let commentID = comment.id else { return false }
+        return comment.authorUID == uid && !communityViewModel.deletingCommentIDs.contains(commentID)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -269,9 +281,29 @@ struct CommentRow: View {
             }
 
             Spacer()
+
+            if let commentID = comment.id, communityViewModel.deletingCommentIDs.contains(commentID) {
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(.top, 4)
+            }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .contextMenu {
+            if canDelete {
+                Button(role: .destructive) {
+                    guard let commentID = comment.id else { return }
+                    Haptics.warning()
+                    Task {
+                        await communityViewModel.deleteComment(postID: postID, commentID: commentID)
+                    }
+                } label: {
+                    Label("Delete Comment", systemImage: "trash")
+                }
+            }
+        }
     }
 }
 

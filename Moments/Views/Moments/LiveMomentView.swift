@@ -47,17 +47,21 @@ struct LiveMomentView: View {
                     .padding(.bottom, 40)
 
                 // End Moment
-                HStack {
-                    Spacer()
-                    Button {
-                        showEndConfirmation = true
-                    } label: {
-                        Text("end moment")
-                            .font(MomentsStyle.systemLight(13))
-                            .foregroundColor(MomentsStyle.secondaryText)
-                    }
-                    Spacer()
+                Button {
+                    showEndConfirmation = true
+                } label: {
+                    Text("END MOMENT")
+                        .font(.system(size: 11, weight: .light))
+                        .tracking(2)
+                        .foregroundColor(MomentsStyle.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(MomentsStyle.border, lineWidth: 1)
+                        )
                 }
+                .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             }
         }

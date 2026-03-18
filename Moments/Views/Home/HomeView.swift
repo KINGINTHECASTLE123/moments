@@ -20,6 +20,7 @@ struct HomeView: View {
     @Environment(MomentPlannerViewModel.self) private var planner
     @State private var path = NavigationPath()
     @State private var showProfile = false
+    @State private var showLiveMoment = false
 
     var headerFontStyle: HeaderFontStyle = .georgiaItalic
 
@@ -71,19 +72,18 @@ struct HomeView: View {
 
                     Spacer()
 
-                    Button {
-                        if planner.isActive {
-                            path.append(HomeDestination.liveMoment)
-                        } else {
+                    if !planner.isActive {
+                        Button {
                             path.append(HomeDestination.createMoment)
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 30, weight: .regular))
+                                .foregroundColor(MomentsStyle.primaryText)
+                                .frame(width: 46, height: 46)
+                                .background(MomentsStyle.surfaceSecondary)
+                                .clipShape(Circle())
                         }
-                    } label: {
-                        Image(systemName: planner.isActive ? "sparkles" : "plus")
-                            .font(.system(size: planner.isActive ? 22 : 30, weight: .regular))
-                            .foregroundColor(MomentsStyle.primaryText)
-                            .frame(width: 46, height: 46)
-                            .background(MomentsStyle.surfaceSecondary)
-                            .clipShape(Circle())
+                        .accessibilityLabel("Create new moment")
                     }
                 }
                 .padding(.horizontal, spacing + 15)
@@ -168,8 +168,32 @@ struct HomeView: View {
                     } label: {
                         profileButtonLabel
                     }
+                    .accessibilityLabel("View profile")
 
                     Spacer()
+
+                    if planner.isActive {
+                        Button {
+                            showLiveMoment = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundColor(MomentsStyle.background)
+                                Text("LIVE MOMENT")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .tracking(1)
+                                    .foregroundColor(MomentsStyle.background)
+                            }
+                            .padding(.horizontal, 20)
+                            .frame(height: 54)
+                            .background(MomentsStyle.primaryText)
+                            .clipShape(Capsule())
+                        }
+                        .accessibilityLabel("View active moment")
+
+                        Spacer()
+                    }
 
                     Button {
                         path.append(HomeDestination.settings)
@@ -181,6 +205,7 @@ struct HomeView: View {
                             .background(MomentsStyle.surfaceSecondary)
                             .clipShape(Circle())
                     }
+                    .accessibilityLabel("Settings")
                 }
                 .padding(.horizontal, spacing + 15)
                 .padding(.top, 8)
@@ -200,6 +225,11 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: $showProfile) {
             ProfileCoverView()
+        }
+        .sheet(isPresented: $showLiveMoment) {
+            NavigationStack {
+                LiveMomentView()
+            }
         }
         .task {
             await appContentViewModel.fetchContentIfNeeded()
