@@ -11,8 +11,9 @@ struct DrinksView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(Strings.drinksTitle, subtitle: Strings.drinksSubtitle)
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionHeader(Strings.drinksTitle, subtitle: Strings.drinksSubtitle)
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
@@ -106,26 +107,29 @@ struct DrinksView: View {
                     await drinksViewModel.fetchDrinks()
                 }
             }
-        }
-        .background(MomentsStyle.background)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MomentsStyle.primaryText)
-                }
-                .accessibilityLabel(Strings.tabHome)
             }
-        }
-        .navigationDestination(for: FirestoreDrink.self) { drink in
-            DrinkDetailView(drink: drink)
-        }
-        .task {
-            if drinksViewModel.drinks.isEmpty {
-                await drinksViewModel.fetchDrinks()
+            .background(MomentsStyle.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(Strings.tabHome)
+                }
+            }
+            .navigationDestination(for: FirestoreDrink.self) { drink in
+                DrinkDetailView(drink: drink)
+            }
+            .task {
+                if drinksViewModel.drinks.isEmpty {
+                    await drinksViewModel.fetchDrinks()
+                }
             }
         }
     }
@@ -249,11 +253,10 @@ struct DrinkDetailView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 32, height: 32)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
             }
             ToolbarItem(placement: .principal) {

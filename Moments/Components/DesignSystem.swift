@@ -6,7 +6,7 @@ enum MomentsStyle {
     static let background = Color(UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.1, green: 0.094, blue: 0.078, alpha: 1)    // #1A1814
-            : .white
+            : UIColor(red: 0.945, green: 0.937, blue: 0.925, alpha: 1)  // #F1EFEC warm light grey
     })
 
     static let primaryText = Color(UIColor { traits in

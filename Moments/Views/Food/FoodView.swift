@@ -11,8 +11,9 @@ struct FoodView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(Strings.foodTitle, subtitle: Strings.foodSubtitle)
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionHeader(Strings.foodTitle, subtitle: Strings.foodSubtitle)
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
@@ -106,26 +107,29 @@ struct FoodView: View {
                     await foodViewModel.fetchDishes()
                 }
             }
-        }
-        .background(MomentsStyle.background)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MomentsStyle.primaryText)
-                }
-                .accessibilityLabel(Strings.tabHome)
             }
-        }
-        .navigationDestination(for: FirestoreDish.self) { dish in
-            DishDetailView(dish: dish)
-        }
-        .task {
-            if foodViewModel.dishes.isEmpty {
-                await foodViewModel.fetchDishes()
+            .background(MomentsStyle.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(Strings.tabHome)
+                }
+            }
+            .navigationDestination(for: FirestoreDish.self) { dish in
+                DishDetailView(dish: dish)
+            }
+            .task {
+                if foodViewModel.dishes.isEmpty {
+                    await foodViewModel.fetchDishes()
+                }
             }
         }
     }
@@ -249,11 +253,10 @@ struct DishDetailView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 32, height: 32)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
             }
             ToolbarItem(placement: .principal) {

@@ -38,15 +38,15 @@ struct MainTabView: View {
         Group {
             switch selectedTab {
             case .games:
-                NavigationStack { GamesView() }
+                GamesView()
             case .food:
-                NavigationStack { FoodView() }
+                FoodView()
             case .drinks:
-                NavigationStack { DrinksView() }
+                DrinksView()
             case .music:
-                NavigationStack { CuratedMusicView() }
+                CuratedMusicView()
             case .community:
-                NavigationStack { CommunityView() }
+                CommunityView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

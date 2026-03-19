@@ -5,36 +5,40 @@ struct GamesView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                SectionHeader(Strings.gamesTitle, subtitle: Strings.gamesSubtitle)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .padding(.bottom, 28)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    SectionHeader(Strings.gamesTitle, subtitle: Strings.gamesSubtitle)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 28)
 
-                GameSection(title: Strings.gamesLightSocial, games: lightGames)
+                    GameSection(title: Strings.gamesLightSocial, games: lightGames)
 
-                GameSection(title: Strings.gamesDeepPlayful, games: deepGames)
-                    .padding(.top, 28)
+                    GameSection(title: Strings.gamesDeepPlayful, games: deepGames)
+                        .padding(.top, 28)
 
-                Spacer(minLength: 32)
-            }
-        }
-        .background(MomentsStyle.background)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MomentsStyle.primaryText)
+                    Spacer(minLength: 32)
                 }
-                .accessibilityLabel(Strings.tabHome)
             }
-        }
-        .navigationDestination(for: Game.self) { game in
-            GameDetailView(game: game)
+            .background(MomentsStyle.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(Strings.tabHome)
+                }
+            }
+            .navigationDestination(for: Game.self) { game in
+                GameDetailView(game: game)
+            }
         }
     }
 }

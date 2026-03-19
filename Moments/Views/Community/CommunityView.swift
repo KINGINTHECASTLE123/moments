@@ -6,10 +6,12 @@ struct CommunityView: View {
     @Environment(AppLanguage.self) private var appLanguage
     @Environment(\.dismiss) private var dismiss
     @State private var showCreatePost = false
+    @State private var selectedPost: FirestorePost?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     SectionHeader(Strings.communityTitle, subtitle: Strings.communitySubtitle)
 
@@ -17,14 +19,12 @@ struct CommunityView: View {
 
                     Button { showCreatePost = true } label: {
                         Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .light))
+                            .font(.system(size: 14, weight: .light))
                             .foregroundColor(MomentsStyle.primaryText)
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Circle()
-                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-                            )
+                            .frame(width: 34, height: 34)
+                            .contentShape(Circle())
                     }
+                    .buttonStyle(.glass)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
@@ -98,12 +98,13 @@ struct CommunityView: View {
                 } else {
                     VStack(spacing: 14) {
                         ForEach(communityViewModel.posts) { post in
-                            NavigationLink {
-                                PostDetailView(post: post)
+                            Button {
+                                selectedPost = post
                             } label: {
                                 PostCard(post: post)
                             }
                             .buttonStyle(.plain)
+                            .contentShape(Rectangle())
                         }
                     }
                     .padding(.horizontal, 24)
@@ -111,31 +112,37 @@ struct CommunityView: View {
 
                 Spacer(minLength: 32)
             }
-        }
-        .background(MomentsStyle.background)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MomentsStyle.primaryText)
-                }
-                .accessibilityLabel(Strings.tabHome)
             }
-        }
-        .refreshable {
-            Haptics.cardSettle()
-            guard case .signedIn(let uid) = authViewModel.authState else { return }
-            await communityViewModel.fetchPosts(currentUID: uid)
-        }
-        .task {
-            guard case .signedIn(let uid) = authViewModel.authState else { return }
-            communityViewModel.startListening(currentUID: uid)
-        }
-        .sheet(isPresented: $showCreatePost) {
-            CreatePostView()
+            .background(MomentsStyle.background)
+            .navigationDestination(item: $selectedPost) { post in
+                PostDetailView(post: post)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(Strings.tabHome)
+                }
+            }
+            .refreshable {
+                Haptics.cardSettle()
+                guard case .signedIn(let uid) = authViewModel.authState else { return }
+                await communityViewModel.fetchPosts(currentUID: uid)
+            }
+            .task {
+                guard case .signedIn(let uid) = authViewModel.authState else { return }
+                communityViewModel.startListening(currentUID: uid)
+            }
+            .sheet(isPresented: $showCreatePost) {
+                CreatePostView()
+            }
         }
     }
 }

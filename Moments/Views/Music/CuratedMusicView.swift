@@ -19,8 +19,9 @@ struct CuratedMusicView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
                 // Header
                 SectionHeader(Strings.musicTitle, subtitle: Strings.musicSubtitle)
                     .padding(.horizontal, 24)
@@ -58,28 +59,31 @@ struct CuratedMusicView: View {
 
                 Spacer(minLength: 32)
             }
-        }
-        .background(MomentsStyle.background)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MomentsStyle.primaryText)
-                }
-                .accessibilityLabel(Strings.tabHome)
             }
-        }
-        .navigationDestination(for: CuratedPlaylist.self) { playlist in
-            CuratedPlaylistDetailView(playlist: playlist)
-        }
-        .task {
-            await musicViewModel.fetchPlaylistCovers()
-        }
-        .refreshable {
-            await musicViewModel.fetchPlaylistCovers()
+            .background(MomentsStyle.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(Strings.tabHome)
+                }
+            }
+            .navigationDestination(for: CuratedPlaylist.self) { playlist in
+                CuratedPlaylistDetailView(playlist: playlist)
+            }
+            .task {
+                await musicViewModel.fetchPlaylistCovers()
+            }
+            .refreshable {
+                await musicViewModel.fetchPlaylistCovers()
+            }
         }
     }
 

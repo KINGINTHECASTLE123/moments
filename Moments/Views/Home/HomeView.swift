@@ -78,12 +78,11 @@ struct HomeView: View {
                             path.append(HomeDestination.createMoment)
                         } label: {
                             Image(systemName: "plus")
-                                .font(.system(size: 30, weight: .regular))
+                                .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(MomentsStyle.primaryText)
-                                .frame(width: 46, height: 46)
-                                .background(MomentsStyle.surfaceSecondary)
-                                .clipShape(Circle())
+                                .frame(width: 34, height: 34)
                         }
+                        .buttonStyle(.glass)
                         .accessibilityLabel(Strings.homeCreateMoment)
                     }
                 }
@@ -200,12 +199,11 @@ struct HomeView: View {
                         path.append(HomeDestination.settings)
                     } label: {
                         Image(systemName: "gearshape")
-                            .font(.system(size: 20, weight: .regular))
-                            .foregroundColor(MomentsStyle.secondaryText)
-                            .frame(width: 54, height: 54)
-                            .background(MomentsStyle.surfaceSecondary)
-                            .clipShape(Circle())
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 34, height: 34)
                     }
+                    .buttonStyle(.glass)
                     .accessibilityLabel(Strings.homeSettings)
                 }
                 .padding(.horizontal, spacing + 15)

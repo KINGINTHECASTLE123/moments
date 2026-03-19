@@ -355,11 +355,10 @@ private struct PlayOnSpotifyButton: View {
         } label: {
             Image(systemName: "play.fill")
                 .font(.system(size: 12))
-                .foregroundColor(MomentsStyle.background)
-                .frame(width: 36, height: 36)
-                .background(MomentsStyle.primaryText)
-                .clipShape(Circle())
+                .foregroundColor(MomentsStyle.primaryText)
+                .frame(width: 34, height: 34)
         }
+        .buttonStyle(.glass)
     }
 }
 
