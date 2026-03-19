@@ -90,13 +90,59 @@ service cloud.firestore {
       data.createdAt is timestamp;
     }
 
+    function isValidReport(data) {
+      return data.keys().hasOnly([
+        'reporterUID',
+        'postID',
+        'commentID',
+        'reason',
+        'createdAt'
+      ]) &&
+      data.reporterUID is string &&
+      data.postID is string &&
+      (!('commentID' in data) || data.commentID == null || data.commentID is string) &&
+      data.reason is string &&
+      data.reason.size() > 0 &&
+      data.reason.size() <= 200 &&
+      data.createdAt is timestamp;
+    }
+
+    function isValidCompletedMoment(data) {
+      return data.keys().hasOnly([
+        'title',
+        'vibe',
+        'playlistId',
+        'dishIds',
+        'gameNumbers',
+        'startedAt',
+        'endedAt'
+      ]) &&
+      data.title is string && data.title.size() <= 100 &&
+      data.vibe is string &&
+      (!('playlistId' in data) || data.playlistId == null || data.playlistId is string) &&
+      data.dishIds is list &&
+      data.gameNumbers is list &&
+      data.startedAt is timestamp &&
+      data.endedAt is timestamp &&
+      data.endedAt >= data.startedAt;
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow create: if isOwner(userId) &&
+        isValidUserProfile(request.resource.data) &&
+        request.resource.data.email == request.auth.token.email;
       allow update: if isOwner(userId) &&
         isValidUserProfile(request.resource.data) &&
         request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isOwner(userId);
+
+      match /moments/{momentId} {
+        // Users can only read/write their own moment history
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCompletedMoment(request.resource.data);
+        // History is immutable — no updates or deletes from the client
+      }
     }
 
     match /dishes/{dishId} {
@@ -149,6 +195,8 @@ service cloud.firestore {
             )
           ) ||
           (
+            // LOW fix: commentCount can only increment by 1 or decrement by 1
+            // with a floor of 0 — prevents the count going negative on race.
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount']) &&
             request.resource.data.authorUID == resource.data.authorUID &&
             request.resource.data.authorUsername == resource.data.authorUsername &&
@@ -158,7 +206,12 @@ service cloud.firestore {
             request.resource.data.tag == resource.data.tag &&
             request.resource.data.likes == resource.data.likes &&
             request.resource.data.likedByUIDs == resource.data.likedByUIDs &&
-            request.resource.data.createdAt == resource.data.createdAt
+            request.resource.data.createdAt == resource.data.createdAt &&
+            (
+              request.resource.data.commentCount == resource.data.commentCount + 1 ||
+              (request.resource.data.commentCount == resource.data.commentCount - 1 &&
+               resource.data.commentCount > 0)
+            )
           )
         );
 
@@ -172,6 +225,15 @@ service cloud.firestore {
         allow update: if isSignedIn() && request.auth.uid == resource.data.authorUID && isValidComment(request.resource.data);
         allow delete: if isSignedIn() && request.auth.uid == resource.data.authorUID;
       }
+    }
+
+    match /reports/{reportId} {
+      // Reports are write-only for authenticated users; only admins can read.
+      // Using a uid-postId composite as the document ID prevents duplicate reports.
+      allow create: if isSignedIn() &&
+        request.resource.data.reporterUID == request.auth.uid &&
+        isValidReport(request.resource.data);
+      // No read/update/delete for users — reports are admin-only
     }
   }
 }

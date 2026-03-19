@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveMomentView: View {
     @Environment(MomentPlannerViewModel.self) private var planner
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AuthViewModel.self) private var authViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(AppLanguage.self) private var appLanguage
     @State private var showEndConfirmation = false
@@ -26,19 +27,19 @@ struct LiveMomentView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
-                .padding(.bottom, 28)
+                .padding(.bottom, 20)
 
                 // Now Playing
                 nowPlayingSection
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 14)
 
                 // Tonight's Menu
                 menuSection
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 14)
 
                 // Games
                 gamesSection
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 32)
 
                 // End Moment
                 Button {
@@ -77,7 +78,11 @@ struct LiveMomentView: View {
             titleVisibility: .visible
         ) {
             Button(Strings.liveMomentEndAlertConfirm, role: .destructive) {
-                planner.endMoment()
+                if case .signedIn(let uid) = authViewModel.authState {
+                    planner.endMoment(uid: uid)
+                } else {
+                    planner.endMoment(uid: "")
+                }
                 dismiss()
             }
             Button(Strings.liveMomentEndAlertCancel, role: .cancel) {}
@@ -94,7 +99,7 @@ struct LiveMomentView: View {
             .tracking(3)
             .foregroundColor(MomentsStyle.secondaryText)
             .padding(.horizontal, 24)
-            .padding(.bottom, 14)
+            .padding(.bottom, 12)
 
         if let state = musicViewModel.currentPlayerState {
             CompactNowPlayingCard(
@@ -166,7 +171,7 @@ struct LiveMomentView: View {
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 14)
+                .padding(.bottom, 2)
 
             VStack(spacing: 0) {
                 ForEach(Array(dishIds.enumerated()), id: \.element) { index, dishId in
@@ -190,17 +195,19 @@ struct LiveMomentView: View {
                             .font(.system(size: 12, weight: .light))
                             .foregroundColor(MomentsStyle.inactive)
                     }
-                    .padding(.horizontal, 24)
                     .padding(.vertical, 12)
 
                     if index < dishIds.count - 1 {
                         Rectangle()
                             .frame(height: 0.5)
                             .foregroundColor(MomentsStyle.border)
-                            .padding(.horizontal, 24)
+                            .padding(.leading, 50)
                     }
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 4)
+            .background(MomentsStyle.cardBackground)
         }
     }
 
@@ -209,12 +216,12 @@ struct LiveMomentView: View {
     @ViewBuilder
     private var gamesSection: some View {
         if let gameNumbers = planner.currentPlan?.gameNumbers, !gameNumbers.isEmpty {
+            VStack(alignment: .leading, spacing: 15) {
             Text(Strings.liveMomentGames)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 14)
 
             VStack(spacing: 0) {
                 ForEach(Array(gameNumbers.enumerated()), id: \.element) { index, number in
@@ -232,7 +239,7 @@ struct LiveMomentView: View {
                                             .foregroundColor(MomentsStyle.primaryText)
                                     )
 
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(game.localizedName)
                                         .font(MomentsStyle.systemMedium(15))
                                         .foregroundColor(MomentsStyle.primaryText)
@@ -242,15 +249,15 @@ struct LiveMomentView: View {
                                         .foregroundColor(MomentsStyle.secondaryText)
                                 }
 
-                                Spacer()
+                                Spacer(minLength: 8)
 
                                 PillTag(label: game.localizedTag)
+                                    .fixedSize()
 
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 12, weight: .light))
                                     .foregroundColor(MomentsStyle.inactive)
                             }
-                            .padding(.horizontal, 24)
                             .padding(.vertical, 14)
                         }
                         .buttonStyle(.plain)
@@ -260,13 +267,16 @@ struct LiveMomentView: View {
                         Rectangle()
                             .frame(height: 0.5)
                             .foregroundColor(MomentsStyle.border)
-                            .padding(.horizontal, 24)
+                            .padding(.leading, 58)
                     }
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
+            .background(MomentsStyle.cardBackground)
+            } // end wrapping VStack
         }
     }
-
 }
 
 // MARK: - Compact Now Playing Card
@@ -377,5 +387,7 @@ private func gameByNumber(_ number: Int) -> Game? {
         LiveMomentView()
             .environment(vm)
             .environment(MusicViewModel())
+            .environment(AuthViewModel())
+            .environment(AppLanguage.shared)
     }
 }

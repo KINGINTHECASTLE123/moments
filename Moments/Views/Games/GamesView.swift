@@ -11,12 +11,11 @@ struct GamesView: View {
                     SectionHeader(Strings.gamesTitle, subtitle: Strings.gamesSubtitle)
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
-                        .padding(.bottom, 28)
+                        .padding(.bottom, 12)
 
                     GameSection(title: Strings.gamesLightSocial, games: lightGames)
 
                     GameSection(title: Strings.gamesDeepPlayful, games: deepGames)
-                        .padding(.top, 28)
 
                     Spacer(minLength: 32)
                 }
@@ -54,21 +53,27 @@ struct GameSection: View {
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 14)
+                .padding(.top, 28)
+                .padding(.bottom, 12)
 
-            ForEach(games) { game in
-                NavigationLink(value: game) {
-                    GameRow(game: game)
-                }
-                .buttonStyle(.plain)
+            VStack(spacing: 0) {
+                ForEach(games) { game in
+                    NavigationLink(value: game) {
+                        GameRow(game: game)
+                    }
+                    .buttonStyle(.plain)
 
-                if game.id != games.last?.id {
-                    Rectangle()
-                        .frame(height: 0.5)
-                        .foregroundColor(MomentsStyle.border)
-                        .padding(.horizontal, 24)
+                    if game.id != games.last?.id {
+                        Rectangle()
+                            .frame(height: 0.5)
+                            .foregroundColor(MomentsStyle.border)
+                            .padding(.leading, 60)
+                    }
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 4)
+            .background(MomentsStyle.cardBackground)
         }
     }
 }
@@ -98,15 +103,15 @@ struct GameRow: View {
                     .foregroundColor(MomentsStyle.secondaryText)
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             PillTag(label: game.localizedTag)
+                .fixedSize()
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .light))
                 .foregroundColor(MomentsStyle.inactive)
         }
-        .padding(.horizontal, 24)
         .padding(.vertical, 14)
     }
 }
@@ -114,5 +119,6 @@ struct GameRow: View {
 #Preview {
     NavigationStack {
         GamesView()
+            .environment(AppLanguage.shared)
     }
 }

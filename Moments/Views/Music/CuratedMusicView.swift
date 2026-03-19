@@ -223,21 +223,27 @@ struct CuratedMusicView: View {
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 14)
+                .padding(.top, 4)
+                .padding(.bottom, 12)
 
-            ForEach(filteredPlaylists) { playlist in
-                NavigationLink(value: playlist) {
-                    CuratedPlaylistRow(playlist: playlist, coverURL: musicViewModel.coverURL(for: playlist.id))
-                }
-                .buttonStyle(.plain)
+            VStack(spacing: 0) {
+                ForEach(filteredPlaylists) { playlist in
+                    NavigationLink(value: playlist) {
+                        CuratedPlaylistRow(playlist: playlist, coverURL: musicViewModel.coverURL(for: playlist.id))
+                    }
+                    .buttonStyle(.plain)
 
-                if playlist.id != filteredPlaylists.last?.id {
-                    Rectangle()
-                        .frame(height: 0.5)
-                        .foregroundColor(MomentsStyle.border)
-                        .padding(.horizontal, 24)
+                    if playlist.id != filteredPlaylists.last?.id {
+                        Rectangle()
+                            .frame(height: 0.5)
+                            .foregroundColor(MomentsStyle.border)
+                            .padding(.leading, 84)
+                    }
                 }
             }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 4)
+            .background(MomentsStyle.cardBackground)
         }
     }
 
@@ -323,7 +329,6 @@ private struct CuratedPlaylistRow: View {
                 .font(.system(size: 12, weight: .light))
                 .foregroundColor(MomentsStyle.inactive)
         }
-        .padding(.horizontal, 24)
         .padding(.vertical, 14)
     }
 }
@@ -332,5 +337,6 @@ private struct CuratedPlaylistRow: View {
     NavigationStack {
         CuratedMusicView()
             .environment(MusicViewModel())
+            .environment(AppLanguage.shared)
     }
 }

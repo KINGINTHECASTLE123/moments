@@ -108,6 +108,8 @@ struct GamePlayView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .light))
                         .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
             }
             ToolbarItem(placement: .principal) {

@@ -102,6 +102,7 @@ struct ForgotPasswordView: View {
                         }
                     }
                     .disabled(authViewModel.isLoading || email.isEmpty)
+                    .opacity(email.isEmpty ? 0.6 : 1)
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     .padding(.bottom, 32)

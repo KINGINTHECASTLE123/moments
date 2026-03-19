@@ -206,6 +206,15 @@ enum Strings {
     static var communityDeletePostConfirmation: String { lang == .english ? "This post will be permanently deleted." : "Dette opslag slettes permanent." }
     static var communityCancel: String { lang == .english ? "Cancel" : "Annuller" }
     static var communityDelete: String { lang == .english ? "Delete" : "Slet" }
+    static var communityReportPost: String { lang == .english ? "Report Post" : "Anmeld opslag" }
+    static var communityReportPostTitle: String { lang == .english ? "Why are you reporting this?" : "Hvorfor anmelder du dette?" }
+    static var communityReportPostConfirmation: String { lang == .english ? "Thank you. We'll review this post." : "Tak. Vi gennemgår dette opslag." }
+    static var communityReportSpam: String { lang == .english ? "Spam" : "Spam" }
+    static var communityReportHarassment: String { lang == .english ? "Harassment" : "Chikane" }
+    static var communityReportInappropriate: String { lang == .english ? "Inappropriate content" : "Upassende indhold" }
+    static var communityReportOther: String { lang == .english ? "Other" : "Andet" }
+    static var communityReportComment: String { lang == .english ? "Report Comment" : "Anmeld kommentar" }
+    static var communityReportCommentConfirmation: String { lang == .english ? "Thank you. We'll review this comment." : "Tak. Vi gennemgår denne kommentar." }
 
     // Create Post
     static var createPostPlaceholder: String { lang == .english ? "Share a moment..." : "Del et øjeblik..." }
@@ -229,6 +238,12 @@ enum Strings {
     static var profileFavorites: String { lang == .english ? "FAVORITES" : "FAVORITTER" }
     static var profileRecentMoments: String { lang == .english ? "RECENT MOMENTS" : "SENESTE MOMENTER" }
     static var profileComingSoon: String { lang == .english ? "COMING SOON" : "KOMMER SNART" }
+    static var profileNoMomentsYet: String { lang == .english ? "No moments yet" : "Ingen momenter endnu" }
+    static var profileNoMomentsSubtitle: String { lang == .english ? "Create your first moment to see it here." : "Opret dit første moment for at se det her." }
+    static var profileNoFavoritesSubtitle: String { lang == .english ? "Complete a moment to see your favourites here." : "Afslut et moment for at se dine favoritter her." }
+    static var profileFavouritePlaylist: String { lang == .english ? "Top playlist" : "Favoritspilleliste" }
+    static var profileFavouriteGame: String { lang == .english ? "Most played game" : "Mest spillede spil" }
+    static var profileFavouriteDish: String { lang == .english ? "Most cooked dish" : "Mest lavede ret" }
     static var profileMemberSince: String { lang == .english ? "Member since" : "Medlem siden" }
     static var profileMoments: String { lang == .english ? "Moments" : "Momenter" }
     static var profileFriends: String { lang == .english ? "Friends" : "Venner" }

@@ -102,7 +102,8 @@ struct SignInView: View {
                     }
                 }
                 .buttonStyle(MomentsPrimaryButtonStyle())
-                .disabled(authViewModel.isLoading)
+                .disabled(authViewModel.isLoading || email.isEmpty || password.isEmpty)
+                .opacity((email.isEmpty || password.isEmpty) ? 0.6 : 1)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 32)

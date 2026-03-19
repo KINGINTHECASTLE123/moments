@@ -9,6 +9,8 @@ protocol PostServiceProtocol: Sendable {
     func addComment(postID: String, comment: FirestoreComment) async throws
     func deletePost(postID: String) async throws
     func deleteComment(postID: String, commentID: String) async throws
+    func reportPost(postID: String, reporterUID: String, reason: String) async throws
+    func reportComment(postID: String, commentID: String, reporterUID: String, reason: String) async throws
     func postsStream(limit: Int) -> AsyncStream<[FirestorePost]>
     func commentsStream(postID: String) -> AsyncStream<[FirestoreComment]>
 }
@@ -93,6 +95,31 @@ final class PostService: PostServiceProtocol {
         try await postsCollection.document(postID).updateData([
             "commentCount": FieldValue.increment(Int64(-1))
         ])
+    }
+
+    func reportPost(postID: String, reporterUID: String, reason: String) async throws {
+        // Document ID is a composite key to prevent duplicate reports from the same user
+        let reportID = "\(reporterUID)_\(postID)"
+        let data: [String: Any] = [
+            "reporterUID": reporterUID,
+            "postID": postID,
+            "reason": reason,
+            "createdAt": FieldValue.serverTimestamp()
+        ]
+        try await db.collection("reports").document(reportID).setData(data)
+    }
+
+    func reportComment(postID: String, commentID: String, reporterUID: String, reason: String) async throws {
+        // Composite key prevents duplicate reports from the same user on the same comment
+        let reportID = "\(reporterUID)_\(postID)_\(commentID)"
+        let data: [String: Any] = [
+            "reporterUID": reporterUID,
+            "postID": postID,
+            "commentID": commentID,
+            "reason": reason,
+            "createdAt": FieldValue.serverTimestamp()
+        ]
+        try await db.collection("reports").document(reportID).setData(data)
     }
 
     func postsStream(limit: Int = 20) -> AsyncStream<[FirestorePost]> {

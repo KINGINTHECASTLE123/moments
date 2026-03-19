@@ -11,7 +11,7 @@ struct PillTag: View {
             .foregroundColor(filled ? MomentsStyle.background : MomentsStyle.primaryText)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
-            .background(filled ? MomentsStyle.primaryText : Color.clear)
+            .background(filled ? MomentsStyle.primaryText : MomentsStyle.cardBackground)
             .clipShape(Capsule())
             .overlay(
                 Capsule()

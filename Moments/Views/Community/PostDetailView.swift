@@ -9,17 +9,27 @@ struct PostDetailView: View {
     let post: FirestorePost
     @State private var commentText = ""
     @State private var showDeleteConfirmation = false
+    @State private var showReportConfirmation = false
+    @State private var reportSent = false
     @FocusState private var isCommentFocused: Bool
 
     private var latestPost: FirestorePost {
         communityViewModel.posts.first(where: { $0.id == post.id }) ?? post
     }
 
+    private var currentUID: String? {
+        if case .signedIn(let uid) = authViewModel.authState { return uid }
+        return nil
+    }
+
     private var canDelete: Bool {
-        if case .signedIn(let uid) = authViewModel.authState {
-            return latestPost.authorUID == uid
-        }
-        return false
+        guard let uid = currentUID else { return false }
+        return latestPost.authorUID == uid
+    }
+
+    private var canReport: Bool {
+        guard let uid = currentUID else { return false }
+        return latestPost.authorUID != uid
     }
 
     private var resolvedAuthorImageURL: String? {
@@ -172,6 +182,7 @@ struct PostDetailView: View {
                                     authorUsername: username,
                                     body: commentText.trimmingCharacters(in: .whitespacesAndNewlines)
                                 )
+                                Haptics.success()
                                 commentText = ""
                                 isCommentFocused = false
                             }
@@ -210,6 +221,16 @@ struct PostDetailView: View {
                     }
                 }
             }
+            if canReport {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showReportConfirmation = true
+                    } label: {
+                        Image(systemName: "flag")
+                            .foregroundColor(MomentsStyle.primaryText)
+                    }
+                }
+            }
         }
         .onAppear {
             guard let postID = latestPost.id else { return }
@@ -233,6 +254,26 @@ struct PostDetailView: View {
         } message: {
             Text(Strings.communityDeletePostConfirmation)
         }
+        .confirmationDialog(Strings.communityReportPostTitle, isPresented: $showReportConfirmation, titleVisibility: .visible) {
+            Button(Strings.communityReportSpam, role: .destructive) { sendReport(reason: Strings.communityReportSpam) }
+            Button(Strings.communityReportHarassment, role: .destructive) { sendReport(reason: Strings.communityReportHarassment) }
+            Button(Strings.communityReportInappropriate, role: .destructive) { sendReport(reason: Strings.communityReportInappropriate) }
+            Button(Strings.communityReportOther, role: .destructive) { sendReport(reason: Strings.communityReportOther) }
+            Button(Strings.communityCancel, role: .cancel) { }
+        }
+        .alert(Strings.communityReportPost, isPresented: $reportSent) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(Strings.communityReportPostConfirmation)
+        }
+    }
+
+    private func sendReport(reason: String) {
+        guard let postID = latestPost.id, let uid = currentUID else { return }
+        Task {
+            await communityViewModel.reportPost(postID: postID, reporterUID: uid, reason: reason)
+            reportSent = true
+        }
     }
 }
 
@@ -241,10 +282,16 @@ struct CommentRow: View {
     let comment: FirestoreComment
     let postID: String
     let currentUID: String?
+    @State private var reportSent = false
 
     private var canDelete: Bool {
         guard let uid = currentUID, let commentID = comment.id else { return false }
         return comment.authorUID == uid && !communityViewModel.deletingCommentIDs.contains(commentID)
+    }
+
+    private var canReport: Bool {
+        guard let uid = currentUID else { return false }
+        return comment.authorUID != uid
     }
 
     var body: some View {
@@ -304,6 +351,28 @@ struct CommentRow: View {
                     Label(Strings.postDetailDeleteComment, systemImage: "trash")
                 }
             }
+            if canReport, let commentID = comment.id {
+                Button {
+                    guard let uid = currentUID else { return }
+                    Task {
+                        await communityViewModel.reportComment(
+                            postID: postID,
+                            commentID: commentID,
+                            reporterUID: uid,
+                            reason: Strings.communityReportOther
+                        )
+                        Haptics.success()
+                        reportSent = true
+                    }
+                } label: {
+                    Label(Strings.communityReportComment, systemImage: "flag")
+                }
+            }
+        }
+        .alert(Strings.communityReportComment, isPresented: $reportSent) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(Strings.communityReportCommentConfirmation)
         }
     }
 }

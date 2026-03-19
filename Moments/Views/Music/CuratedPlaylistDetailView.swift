@@ -101,15 +101,15 @@ struct CuratedPlaylistDetailView: View {
                 .clipShape(Capsule())
             }
 
-            // Shuffle button
-            if musicViewModel.isConnected {
+            // Open in Spotify
+            if let webURL = playlist.spotifyURL {
                 Button {
-                    musicViewModel.play(uri: playlist.spotifyURI)
+                    UIApplication.shared.open(webURL)
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "shuffle")
+                        Image(systemName: "arrow.up.right")
                             .font(.system(size: 10))
-                        Text(Strings.musicShuffle)
+                        Text(Strings.musicViewInSpotify)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                     }

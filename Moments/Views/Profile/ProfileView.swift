@@ -3,6 +3,8 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(MomentPlannerViewModel.self) private var momentPlannerViewModel
+    @Environment(FoodViewModel.self) private var foodViewModel
     @Environment(AppLanguage.self) private var appLanguage
 
     private var profile: UserProfile? {
@@ -90,91 +92,102 @@ struct ProfileView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 28)
-
-                Rectangle()
-                    .frame(height: 0.5)
-                    .foregroundColor(MomentsStyle.border)
 
                 // Favorites section
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 8) {
-                        Text(Strings.profileFavorites)
-                            .font(.system(size: 10, weight: .light))
-                            .tracking(3)
-                            .foregroundColor(MomentsStyle.secondaryText)
-
-                        Text(Strings.profileComingSoon)
-                            .font(.system(size: 7, weight: .light))
-                            .tracking(2)
-                            .foregroundColor(MomentsStyle.inactive)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .overlay(
-                                Capsule()
-                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-                            )
-                    }
-
-                    VStack(spacing: 12) {
-                        ProfileFavoriteRow(icon: "fork.knife", title: "Negroni & Burrata", subtitle: "Most made pairing")
-                        ProfileFavoriteRow(icon: "dice", title: "Late Night Conversations", subtitle: "Most played game")
-                        ProfileFavoriteRow(icon: "music.note", title: "Dinner Party Grooves", subtitle: "Top playlist")
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 24)
-                .padding(.bottom, 28)
-
                 Rectangle()
                     .frame(height: 0.5)
                     .foregroundColor(MomentsStyle.border)
 
-                // Recent moments
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 8) {
-                        Text(Strings.profileRecentMoments)
-                            .font(.system(size: 10, weight: .light))
-                            .tracking(3)
-                            .foregroundColor(MomentsStyle.secondaryText)
+                    Text(Strings.profileFavorites)
+                        .font(.system(size: 10, weight: .light))
+                        .tracking(3)
+                        .foregroundColor(MomentsStyle.secondaryText)
 
-                        Text(Strings.profileComingSoon)
-                            .font(.system(size: 7, weight: .light))
-                            .tracking(2)
-                            .foregroundColor(MomentsStyle.inactive)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .overlay(
-                                Capsule()
-                                    .stroke(MomentsStyle.border, lineWidth: 0.5)
-                            )
+                    let topDishName: String? = momentPlannerViewModel.topDishId.flatMap { id in
+                        foodViewModel.dishes.first(where: { $0.id == id })?.name
+                    }
+                    let topGameName: String? = momentPlannerViewModel.topGameNumber.flatMap { number in
+                        (lightGames + deepGames).first(where: { $0.number == number })?.name
+                    }
+                    let topPlaylistName: String? = momentPlannerViewModel.topPlaylistId.flatMap { id in
+                        CuratedPlaylists.all.first(where: { $0.id == id })?.name
                     }
 
-                    VStack(spacing: 12) {
-                        MomentCard(
-                            title: "Wine & Game Night",
-                            date: "Last Friday",
-                            attendees: 6,
-                            description: "Negronis, charades, and Late Night Conversations until 3am."
-                        )
-
-                        MomentCard(
-                            title: "Sunday Brunch",
-                            date: "2 weeks ago",
-                            attendees: 4,
-                            description: "Homemade pastries with Easy Sunday playlist on vinyl."
-                        )
-
-                        MomentCard(
-                            title: "Cocktail Masterclass",
-                            date: "Last month",
-                            attendees: 8,
-                            description: "Learned to make the perfect Espresso Martini with friends."
-                        )
+                    if topDishName == nil && topGameName == nil && topPlaylistName == nil {
+                        Text(Strings.profileNoFavoritesSubtitle)
+                            .font(MomentsStyle.systemLight(14))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                    } else {
+                        VStack(spacing: 10) {
+                            if let name = topPlaylistName {
+                                ProfileFavoriteRow(
+                                    icon: "music.note",
+                                    title: name,
+                                    subtitle: Strings.profileFavouritePlaylist
+                                )
+                            }
+                            if let name = topGameName {
+                                ProfileFavoriteRow(
+                                    icon: "dice",
+                                    title: name,
+                                    subtitle: Strings.profileFavouriteGame
+                                )
+                            }
+                            if let name = topDishName {
+                                ProfileFavoriteRow(
+                                    icon: "fork.knife",
+                                    title: name,
+                                    subtitle: Strings.profileFavouriteDish
+                                )
+                            }
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 28)
+
+                // Recent Moments section
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(MomentsStyle.border)
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(Strings.profileRecentMoments)
+                        .font(.system(size: 10, weight: .light))
+                        .tracking(3)
+                        .foregroundColor(MomentsStyle.secondaryText)
+
+                    if momentPlannerViewModel.isLoadingHistory {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    } else if momentPlannerViewModel.recentMoments.isEmpty {
+                        Text(Strings.profileNoMomentsYet)
+                            .font(MomentsStyle.systemLight(14))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                        Text(Strings.profileNoMomentsSubtitle)
+                            .font(MomentsStyle.systemLight(13))
+                            .foregroundColor(MomentsStyle.secondaryText)
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(momentPlannerViewModel.recentMoments) { moment in
+                                MomentCard(
+                                    title: moment.title,
+                                    date: moment.endedAt.relativeMomentsTimestamp,
+                                    summary: moment.summary
+                                )
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 28)
@@ -277,12 +290,11 @@ struct ProfileFavoriteRow: View {
 struct MomentCard: View {
     let title: String
     let date: String
-    let attendees: Int
-    let description: String
+    let summary: String
 
     var body: some View {
         HairlineCard {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(title)
                         .font(MomentsStyle.georgiaItalic(16))
@@ -295,21 +307,10 @@ struct MomentCard: View {
                         .foregroundColor(MomentsStyle.secondaryText)
                 }
 
-                Text(description)
-                    .font(MomentsStyle.systemLight(13))
-                    .foregroundColor(MomentsStyle.secondaryText)
-                    .lineSpacing(3)
-
-                HStack(spacing: 12) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.2")
-                            .font(.system(size: 11, weight: .light))
-                        Text("\(attendees) \(Strings.profilePeople)")
-                            .font(MomentsStyle.systemLight(11))
-                    }
-                    .foregroundColor(MomentsStyle.secondaryText)
-
-                    Spacer()
+                if !summary.isEmpty {
+                    Text(summary)
+                        .font(MomentsStyle.systemLight(12))
+                        .foregroundColor(MomentsStyle.secondaryText)
                 }
             }
         }
@@ -365,6 +366,8 @@ struct FlowLayout: Layout {
         ProfileView()
             .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(MomentPlannerViewModel())
+            .environment(FoodViewModel())
             .environment(AppLanguage.shared)
     }
 }

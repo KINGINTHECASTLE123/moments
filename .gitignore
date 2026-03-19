@@ -67,6 +67,7 @@ Secrets.xcconfig
 # Local tooling
 firebase-tools/node_modules/
 firebase-tools/serviceAccountKey.json
+firebase-tools/.env
 firebase-tools/*.log
 
 # macOS

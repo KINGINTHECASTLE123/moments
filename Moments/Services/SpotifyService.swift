@@ -159,14 +159,10 @@ final class SpotifyService: NSObject {
             action()
         } else {
             pendingPlaybackAction = action
-            // appRemote.connect() only works if Spotify is already active in
-            // the background. authorizeAndPlayURI("") brings Spotify to the
-            // foreground and re-establishes the App Remote connection without
-            // changing the currently playing track (empty URI = resume current).
+            // Try silent reconnect first. Only escalate to authorizeAndPlayURI
+            // if connect() fails (handled in didFailConnectionAttemptWithError).
             if accessToken != nil {
-                appRemote.authorizeAndPlayURI("")
-            } else {
-                connect()
+                appRemote.connect()
             }
         }
     }
@@ -334,8 +330,17 @@ extension SpotifyService: SPTAppRemoteDelegate {
             isConnected = false
 
             // Code -2000 (connection refused / stream error) means Spotify is not
-            // running — renewal won't help. Surface the disconnect immediately.
+            // running in the background. If there is a pending playback action,
+            // escalate to authorizeAndPlayURI("") which brings Spotify to the
+            // foreground and re-establishes the connection without changing the
+            // currently playing track (empty URI = resume current).
             let isConnectionRefused = (error as NSError?)?.code == -2000
+            if isConnectionRefused, accessToken != nil, pendingPlaybackAction != nil {
+                Log.spotify.debug("Silent reconnect failed — escalating to authorizeAndPlayURI")
+                _ = await self.appRemote.authorizeAndPlayURI("")
+                return
+            }
+
             if !isConnectionRefused, !hasAttemptedRenewal, accessToken != nil {
                 hasAttemptedRenewal = true
                 sessionManager.renewSession()

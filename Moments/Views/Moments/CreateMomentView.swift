@@ -76,6 +76,8 @@ struct CreateMomentView: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .light))
                             .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                 }
             }
@@ -86,6 +88,8 @@ struct CreateMomentView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .light))
                         .foregroundColor(MomentsStyle.primaryText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
             }
         }
@@ -166,7 +170,7 @@ struct CreateMomentView: View {
             .padding(.top, 24)
             .padding(.bottom, 32)
 
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(spacing: 0) {
                 // Music
                 CustomizeSection(title: Strings.createMomentSectionMusic) {
                     if let playlistId = planner.currentPlan?.playlistId,
@@ -186,10 +190,12 @@ struct CreateMomentView: View {
                         EmptySelectionRow(icon: "music.note", label: Strings.createMomentAddPlaylist)
                     }
                 }
+                .padding(.vertical, 16)
 
                 Rectangle()
                     .fill(MomentsStyle.border)
                     .frame(height: 0.5)
+                    .padding(.leading, 50)
 
                 // Menu
                 CustomizeSection(title: Strings.createMomentSectionMenu) {
@@ -207,10 +213,12 @@ struct CreateMomentView: View {
                         EmptySelectionRow(icon: "fork.knife", label: Strings.createMomentAddDishes)
                     }
                 }
+                .padding(.vertical, 16)
 
                 Rectangle()
                     .fill(MomentsStyle.border)
                     .frame(height: 0.5)
+                    .padding(.leading, 50)
 
                 // Games
                 CustomizeSection(title: Strings.createMomentSectionGames) {
@@ -229,7 +237,11 @@ struct CreateMomentView: View {
                         EmptySelectionRow(icon: "dice", label: Strings.createMomentAddGames)
                     }
                 }
+                .padding(.vertical, 16)
             }
+            .padding(.horizontal, 16)
+            .background(MomentsStyle.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: MomentsStyle.cardRadius))
         }
     }
 

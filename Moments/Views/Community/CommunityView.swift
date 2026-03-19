@@ -154,12 +154,22 @@ struct PostCard: View {
 
     let post: FirestorePost
     @State private var showDeleteConfirmation = false
+    @State private var showReportConfirmation = false
+    @State private var reportSent = false
+
+    private var currentUID: String? {
+        if case .signedIn(let uid) = authViewModel.authState { return uid }
+        return nil
+    }
 
     private var canDelete: Bool {
-        if case .signedIn(let uid) = authViewModel.authState {
-            return post.authorUID == uid
-        }
-        return false
+        guard let uid = currentUID else { return false }
+        return post.authorUID == uid
+    }
+
+    private var canReport: Bool {
+        guard let uid = currentUID else { return false }
+        return post.authorUID != uid
     }
 
     private var resolvedAuthorImageURL: String? {
@@ -200,10 +210,17 @@ struct PostCard: View {
                         PillTag(label: tag)
                     }
 
-                    if canDelete, let postID = post.id {
+                    if let postID = post.id, (canDelete || canReport) {
                         Menu {
-                            Button(Strings.communityDeletePost, role: .destructive) {
-                                showDeleteConfirmation = true
+                            if canDelete {
+                                Button(Strings.communityDeletePost, role: .destructive) {
+                                    showDeleteConfirmation = true
+                                }
+                            }
+                            if canReport {
+                                Button(Strings.communityReportPost, role: .destructive) {
+                                    showReportConfirmation = true
+                                }
                             }
                         } label: {
                             if communityViewModel.deletingPostIDs.contains(postID) {
@@ -267,8 +284,28 @@ struct PostCard: View {
         } message: {
             Text(Strings.communityDeletePostConfirmation)
         }
+        .confirmationDialog(Strings.communityReportPostTitle, isPresented: $showReportConfirmation, titleVisibility: .visible) {
+            Button(Strings.communityReportSpam, role: .destructive) { sendReport(reason: Strings.communityReportSpam) }
+            Button(Strings.communityReportHarassment, role: .destructive) { sendReport(reason: Strings.communityReportHarassment) }
+            Button(Strings.communityReportInappropriate, role: .destructive) { sendReport(reason: Strings.communityReportInappropriate) }
+            Button(Strings.communityReportOther, role: .destructive) { sendReport(reason: Strings.communityReportOther) }
+            Button(Strings.communityCancel, role: .cancel) { }
+        }
+        .alert(Strings.communityReportPost, isPresented: $reportSent) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(Strings.communityReportPostConfirmation)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(post.authorUsername) posted: \(post.body). \(post.likes) likes, \(post.commentCount) comments")
+    }
+
+    private func sendReport(reason: String) {
+        guard let postID = post.id, let uid = currentUID else { return }
+        Task {
+            await communityViewModel.reportPost(postID: postID, reporterUID: uid, reason: reason)
+            reportSent = true
+        }
     }
 }
 

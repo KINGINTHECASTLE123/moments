@@ -120,11 +120,18 @@ final class MusicViewModel {
     }
 
     func togglePlayback() {
-        guard let state = currentPlayerState else { return }
+        guard var state = currentPlayerState else { return }
+        // Optimistic UI update so the button responds instantly, even if the
+        // App Remote is mid-reconnect and the actual command is queued.
+        state.isPaused.toggle()
+        currentPlayerState = state
+        lastStateReceivedAt = Date()
         if state.isPaused {
-            resume()
-        } else {
+            stopProgressTimer()
             pause()
+        } else {
+            startProgressTimer()
+            resume()
         }
     }
 

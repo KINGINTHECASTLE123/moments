@@ -211,6 +211,22 @@ final class CommunityViewModel {
         deletingCommentIDs.remove(commentID)
     }
 
+    func reportComment(postID: String, commentID: String, reporterUID: String, reason: String) async {
+        do {
+            try await postService.reportComment(postID: postID, commentID: commentID, reporterUID: reporterUID, reason: reason)
+        } catch {
+            setError(error.localizedDescription)
+        }
+    }
+
+    func reportPost(postID: String, reporterUID: String, reason: String) async {
+        do {
+            try await postService.reportPost(postID: postID, reporterUID: reporterUID, reason: reason)
+        } catch {
+            setError(error.localizedDescription)
+        }
+    }
+
     func deletePost(postID: String) async {
         guard !deletingPostIDs.contains(postID) else { return }
         guard let index = posts.firstIndex(where: { $0.id == postID }) else { return }

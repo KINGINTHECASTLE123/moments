@@ -7,13 +7,22 @@ const bucketName =
     process.env.FIREBASE_STORAGE_BUCKET || "moments-e2a58.firebasestorage.app";
 
 function getCredential() {
+    // 1. Raw JSON string from env (for CI/CD like GitHub Actions)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        return admin.credential.cert(serviceAccount);
+    }
+
+    // 2. File path from env or local fallback (for local development)
     const serviceAccountPath =
         process.env.GOOGLE_APPLICATION_CREDENTIALS ||
         path.resolve(process.cwd(), "serviceAccountKey.json");
 
     if (!fs.existsSync(serviceAccountPath)) {
         throw new Error(
-            "Missing service account key. Set GOOGLE_APPLICATION_CREDENTIALS or add serviceAccountKey.json in the firebase-tools folder."
+            "No Firebase credentials found.\n" +
+            "Set FIREBASE_SERVICE_ACCOUNT_JSON (raw JSON) or GOOGLE_APPLICATION_CREDENTIALS (file path),\n" +
+            "or place serviceAccountKey.json in the firebase-tools/ folder."
         );
     }
 
