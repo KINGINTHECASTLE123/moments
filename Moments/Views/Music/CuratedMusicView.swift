@@ -3,6 +3,8 @@ import UIKit
 
 struct CuratedMusicView: View {
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AppLanguage.self) private var appLanguage
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedMood: String = "all"
 
     private let moods = ["all", "intimate", "energetic", "chill"]
@@ -20,9 +22,9 @@ struct CuratedMusicView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
-                SectionHeader("Music", subtitle: "Set the mood for every moment")
+                SectionHeader(Strings.musicTitle, subtitle: Strings.musicSubtitle)
                     .padding(.horizontal, 24)
-                    .padding(.top, 24)
+                    .padding(.top, 8)
                     .padding(.bottom, 24)
 
                 // Now Playing (if Spotify is playing)
@@ -58,6 +60,18 @@ struct CuratedMusicView: View {
             }
         }
         .background(MomentsStyle.background)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                }
+                .accessibilityLabel(Strings.tabHome)
+            }
+        }
         .navigationDestination(for: CuratedPlaylist.self) { playlist in
             CuratedPlaylistDetailView(playlist: playlist)
         }
@@ -73,7 +87,7 @@ struct CuratedMusicView: View {
 
     @ViewBuilder
     private func tonightsPickSection(_ playlist: CuratedPlaylist) -> some View {
-        Text("TONIGHT'S PICK")
+        Text(Strings.musicTonightsPick)
             .font(.system(size: 10, weight: .light))
             .tracking(3)
             .foregroundColor(MomentsStyle.secondaryText)
@@ -128,7 +142,7 @@ struct CuratedMusicView: View {
 
     private var connectPrompt: some View {
         HStack(spacing: 10) {
-            Text("Connect Spotify to control playback")
+            Text(Strings.musicConnectToPlay)
                 .font(MomentsStyle.systemLight(12))
                 .foregroundColor(MomentsStyle.secondaryText)
 
@@ -137,7 +151,7 @@ struct CuratedMusicView: View {
             Button {
                 musicViewModel.authorize()
             } label: {
-                Text("CONNECT")
+                Text(Strings.musicConnect)
                     .font(.system(size: 9, weight: .light))
                     .tracking(2)
                     .foregroundColor(MomentsStyle.primaryText)
@@ -155,7 +169,7 @@ struct CuratedMusicView: View {
 
     private var moodFilterSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("BROWSE BY MOOD")
+            Text(Strings.musicBrowseByMood)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
@@ -171,7 +185,7 @@ struct CuratedMusicView: View {
                             }
                         } label: {
                             PillTag(
-                                label: mood == "all" ? "All" : mood.capitalized,
+                                label: moodLabel(for: mood),
                                 filled: selectedMood == mood
                             )
                         }
@@ -184,11 +198,23 @@ struct CuratedMusicView: View {
         .padding(.bottom, 24)
     }
 
+    // MARK: - Mood Label
+
+    private func moodLabel(for mood: String) -> String {
+        switch mood {
+        case "all": return Strings.musicMoodAll
+        case "intimate": return Strings.musicMoodIntimate
+        case "energetic": return Strings.musicMoodEnergetic
+        case "chill": return Strings.musicMoodChill
+        default: return mood.capitalized
+        }
+    }
+
     // MARK: - Playlist List
 
     private var playlistListSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("ALL PLAYLISTS")
+            Text(Strings.musicAllPlaylists)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
@@ -218,6 +244,7 @@ struct CuratedMusicView: View {
 private struct PlayButton: View {
     let playlist: CuratedPlaylist
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AppLanguage.self) private var appLanguage
 
     private var isSpotifyInstalled: Bool {
         guard let url = URL(string: "spotify://") else { return false }
@@ -241,7 +268,7 @@ private struct PlayButton: View {
             HStack(spacing: 8) {
                 Image(systemName: "play.fill")
                     .font(.system(size: 10))
-                Text("PLAY")
+                Text(Strings.musicPlay)
                     .font(.system(size: 10, weight: .light))
                     .tracking(3)
             }

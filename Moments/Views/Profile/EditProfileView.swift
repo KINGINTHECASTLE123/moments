@@ -5,6 +5,7 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var fullName = ""
     @State private var username = ""
     @State private var bio = ""
@@ -60,24 +61,24 @@ struct EditProfileView: View {
                     // Form fields
                     VStack(spacing: 24) {
                         AuthTextField(
-                            label: "FULL NAME",
-                            placeholder: "Your name",
+                            label: Strings.editProfileFullNameLabel,
+                            placeholder: Strings.editProfileFullNamePlaceholder,
                             text: $fullName
                         )
 
                         AuthTextField(
-                            label: "USERNAME",
-                            placeholder: "@username",
+                            label: Strings.editProfileUsernameLabel,
+                            placeholder: Strings.editProfileUsernamePlaceholder,
                             text: $username
                         )
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("BIO")
+                            Text(Strings.editProfileBioLabel)
                                 .font(.system(size: 9, weight: .light))
                                 .tracking(2)
                                 .foregroundColor(MomentsStyle.secondaryText)
 
-                            TextField("Tell us about yourself...", text: $bio, axis: .vertical)
+                            TextField(Strings.editProfileBioPlaceholder, text: $bio, axis: .vertical)
                                 .font(MomentsStyle.systemLight(16))
                                 .foregroundColor(MomentsStyle.primaryText)
                                 .lineLimit(3...5)
@@ -99,7 +100,7 @@ struct EditProfileView: View {
                             .frame(height: 0.5)
                             .padding(.top, 28)
 
-                        Text("INTERESTS")
+                        Text(Strings.editProfileInterests)
                             .font(.system(size: 9, weight: .light))
                             .tracking(2)
                             .foregroundColor(MomentsStyle.secondaryText)
@@ -150,7 +151,7 @@ struct EditProfileView: View {
                         }
                     }
                 } label: {
-                    Text("SAVE CHANGES")
+                    Text(Strings.editProfileSaveChanges)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.background)
@@ -172,17 +173,11 @@ struct EditProfileView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Edit Profile")
+                Text(Strings.editProfileTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: {
-                    Text("Cancel")
-                        .font(MomentsStyle.systemLight(15))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                }
-            }
+
         }
         .task {
             guard let profile = currentProfile else { return }
@@ -206,5 +201,6 @@ struct EditProfileView: View {
         EditProfileView()
             .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(AppLanguage.shared)
     }
 }

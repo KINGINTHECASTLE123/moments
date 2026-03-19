@@ -13,10 +13,18 @@ struct MomentsApp: App {
     @State private var musicViewModel: MusicViewModel
     @State private var momentPlannerViewModel: MomentPlannerViewModel
     @State private var notificationService: NotificationService
+    @State private var appLanguage = AppLanguage.shared
     @AppStorage(StorageKeys.darkMode) private var darkMode = false
 
     init() {
         FirebaseApp.configure()
+        // One-time migration: clear any stale Spotify token that predates the
+        // invalid_grant fix, so the user gets a clean connect prompt instead of
+        // an error loop on first launch after updating.
+        if !UserDefaults.standard.bool(forKey: StorageKeys.spotifyTokenMigrated) {
+            KeychainService.delete(key: "spotify_access_token")
+            UserDefaults.standard.set(true, forKey: StorageKeys.spotifyTokenMigrated)
+        }
         _authViewModel = State(initialValue: AuthViewModel())
         _userViewModel = State(initialValue: UserViewModel())
         _communityViewModel = State(initialValue: CommunityViewModel())
@@ -42,6 +50,7 @@ struct MomentsApp: App {
                 .environment(musicViewModel)
                 .environment(momentPlannerViewModel)
                 .environment(notificationService)
+                .environment(appLanguage)
                 .preferredColorScheme(darkMode ? .dark : .light)
                 .onOpenURL { url in
                     Log.general.debug("Deep link received")

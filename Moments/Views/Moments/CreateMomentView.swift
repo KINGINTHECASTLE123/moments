@@ -3,6 +3,7 @@ import SwiftUI
 struct CreateMomentView: View {
     @Environment(MomentPlannerViewModel.self) private var planner
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var step = 0
     @State private var momentTitle = ""
 
@@ -47,7 +48,7 @@ struct CreateMomentView: View {
                     Button {
                         handleContinue()
                     } label: {
-                        Text(step < 2 ? "CONTINUE" : "CREATE MOMENT")
+                        Text(step < 2 ? Strings.createMomentContinue : Strings.createMomentCreate)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)
@@ -111,11 +112,11 @@ struct CreateMomentView: View {
     private var vibeStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("What kind of evening?")
+                Text(Strings.createMomentStep1Title)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("Pick a vibe or start from scratch")
+                Text(Strings.createMomentStep1Subtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
@@ -138,8 +139,8 @@ struct CreateMomentView: View {
 
                 VibeCard(
                     icon: "sparkles",
-                    name: "Custom",
-                    subtitle: "Build your own evening"
+                    name: Strings.createMomentCustomTitle,
+                    subtitle: Strings.createMomentCustomSubtitle
                 ) {
                     Haptics.select()
                     planner.createCustom()
@@ -154,11 +155,11 @@ struct CreateMomentView: View {
     private var customizeStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Your evening")
+                Text(Strings.createMomentStep2Title)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("Customize to make it yours")
+                Text(Strings.createMomentStep2Subtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
@@ -167,7 +168,7 @@ struct CreateMomentView: View {
 
             VStack(alignment: .leading, spacing: 24) {
                 // Music
-                CustomizeSection(title: "MUSIC") {
+                CustomizeSection(title: Strings.createMomentSectionMusic) {
                     if let playlistId = planner.currentPlan?.playlistId,
                        let playlist = CuratedPlaylists.all.first(where: { $0.id == playlistId }) {
                         SelectionRow(
@@ -179,10 +180,10 @@ struct CreateMomentView: View {
                         SelectionRow(
                             icon: "music.note",
                             title: playlistId.replacingOccurrences(of: "-", with: " ").capitalized,
-                            subtitle: "Curated playlist"
+                            subtitle: Strings.createMomentCuratedPlaylist
                         )
                     } else {
-                        EmptySelectionRow(icon: "music.note", label: "Add a playlist")
+                        EmptySelectionRow(icon: "music.note", label: Strings.createMomentAddPlaylist)
                     }
                 }
 
@@ -191,7 +192,7 @@ struct CreateMomentView: View {
                     .frame(height: 0.5)
 
                 // Menu
-                CustomizeSection(title: "MENU") {
+                CustomizeSection(title: Strings.createMomentSectionMenu) {
                     if let dishIds = planner.currentPlan?.dishIds, !dishIds.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(dishIds, id: \.self) { dishId in
@@ -203,7 +204,7 @@ struct CreateMomentView: View {
                             }
                         }
                     } else {
-                        EmptySelectionRow(icon: "fork.knife", label: "Add dishes")
+                        EmptySelectionRow(icon: "fork.knife", label: Strings.createMomentAddDishes)
                     }
                 }
 
@@ -212,20 +213,20 @@ struct CreateMomentView: View {
                     .frame(height: 0.5)
 
                 // Games
-                CustomizeSection(title: "GAMES") {
+                CustomizeSection(title: Strings.createMomentSectionGames) {
                     if let gameNumbers = planner.currentPlan?.gameNumbers, !gameNumbers.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(gameNumbers, id: \.self) { number in
                                 let game = gameByNumber(number)
                                 SelectionRow(
                                     icon: game?.icon ?? "dice",
-                                    title: game?.name ?? "Game \(number)",
-                                    subtitle: game?.description
+                                    title: game?.localizedName ?? "Game \(number)",
+                                    subtitle: game?.localizedDescription
                                 )
                             }
                         }
                     } else {
-                        EmptySelectionRow(icon: "dice", label: "Add games")
+                        EmptySelectionRow(icon: "dice", label: Strings.createMomentAddGames)
                     }
                 }
             }
@@ -237,11 +238,11 @@ struct CreateMomentView: View {
     private var nameStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Give your moment a name")
+                Text(Strings.createMomentNameTitle)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("Something to remember the evening by")
+                Text(Strings.createMomentNameSubtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
@@ -249,12 +250,12 @@ struct CreateMomentView: View {
             .padding(.bottom, 40)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("NAME")
+                Text(Strings.createMomentNameLabel)
                     .font(.system(size: 9, weight: .light))
                     .tracking(2)
                     .foregroundColor(MomentsStyle.secondaryText)
 
-                TextField("e.g. Friday Night Dinner", text: $momentTitle)
+                TextField(Strings.createMomentNamePlaceholder, text: $momentTitle)
                     .font(MomentsStyle.systemLight(16))
                     .foregroundColor(MomentsStyle.primaryText)
                     .padding(.bottom, 10)
@@ -276,6 +277,8 @@ private struct VibeCard: View {
     var name: String
     var subtitle: String
     var action: () -> Void
+
+    @Environment(AppLanguage.self) private var appLanguage
 
     init(template: MomentTemplate, action: @escaping () -> Void) {
         self.icon = template.icon

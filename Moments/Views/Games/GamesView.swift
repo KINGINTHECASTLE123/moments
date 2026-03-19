@@ -1,23 +1,38 @@
 import SwiftUI
 
 struct GamesView: View {
+    @Environment(AppLanguage.self) private var appLanguage
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                SectionHeader("Games", subtitle: "Break the ice, spark the night")
+                SectionHeader(Strings.gamesTitle, subtitle: Strings.gamesSubtitle)
                     .padding(.horizontal, 24)
-                    .padding(.top, 24)
+                    .padding(.top, 8)
                     .padding(.bottom, 28)
 
-                GameSection(title: "Light & Social", games: lightGames)
+                GameSection(title: Strings.gamesLightSocial, games: lightGames)
 
-                GameSection(title: "Deep & Playful", games: deepGames)
+                GameSection(title: Strings.gamesDeepPlayful, games: deepGames)
                     .padding(.top, 28)
 
                 Spacer(minLength: 32)
             }
         }
         .background(MomentsStyle.background)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                }
+                .accessibilityLabel(Strings.tabHome)
+            }
+        }
         .navigationDestination(for: Game.self) { game in
             GameDetailView(game: game)
         }
@@ -56,6 +71,7 @@ struct GameSection: View {
 
 struct GameRow: View {
     let game: Game
+    @Environment(AppLanguage.self) private var appLanguage
 
     var body: some View {
         HStack(spacing: 16) {
@@ -69,18 +85,18 @@ struct GameRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(game.name)
+                Text(game.localizedName)
                     .font(MomentsStyle.systemMedium(15))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text(game.description)
+                Text(game.localizedDescription)
                     .font(MomentsStyle.systemLight(13))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
 
             Spacer()
 
-            PillTag(label: game.tag)
+            PillTag(label: game.localizedTag)
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .light))

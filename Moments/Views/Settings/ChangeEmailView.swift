@@ -4,6 +4,7 @@ struct ChangeEmailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var newEmail = ""
     @State private var currentPassword = ""
     @State private var showSuccess = false
@@ -14,16 +15,16 @@ struct ChangeEmailView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     if !showSuccess {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("ACCOUNT")
+                            Text(Strings.changeEmailEyebrow)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.secondaryText)
 
-                            Text("Change email")
+                            Text(Strings.changeEmailTitle)
                                 .font(MomentsStyle.georgiaItalic(34))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("A verification link will be sent to your new email address.")
+                            Text(Strings.changeEmailSubtitle)
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .lineSpacing(4)
@@ -33,15 +34,15 @@ struct ChangeEmailView: View {
 
                         VStack(spacing: 24) {
                             AuthTextField(
-                                label: "NEW EMAIL",
-                                placeholder: "your@email.com",
+                                label: Strings.changeEmailNewEmailLabel,
+                                placeholder: Strings.changeEmailNewEmailPlaceholder,
                                 text: $newEmail,
                                 keyboardType: .emailAddress
                             )
 
                             AuthSecureField(
-                                label: "CURRENT PASSWORD",
-                                placeholder: "Confirm your password",
+                                label: Strings.changeEmailPasswordLabel,
+                                placeholder: Strings.changeEmailPasswordPlaceholder,
                                 text: $currentPassword
                             )
                         }
@@ -60,11 +61,11 @@ struct ChangeEmailView: View {
                                 .font(.system(size: 48, weight: .light))
                                 .foregroundColor(MomentsStyle.inactive)
 
-                            Text("Check your email")
+                            Text(Strings.changeEmailCheckEmailTitle)
                                 .font(MomentsStyle.georgiaItalic(28))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("We've sent a verification link to\n\(newEmail)")
+                            Text(Strings.changeEmailSentTo(newEmail))
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .multilineTextAlignment(.center)
@@ -111,7 +112,7 @@ struct ChangeEmailView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                     } else {
-                        Text(showSuccess ? "DONE" : "UPDATE EMAIL")
+                        Text(showSuccess ? Strings.changeEmailDone : Strings.changeEmailUpdateButton)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)
@@ -134,7 +135,7 @@ struct ChangeEmailView: View {
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Email")
+                Text(Strings.changeEmailNavigationTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
@@ -150,5 +151,6 @@ struct ChangeEmailView: View {
         ChangeEmailView()
             .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(AppLanguage.shared)
     }
 }

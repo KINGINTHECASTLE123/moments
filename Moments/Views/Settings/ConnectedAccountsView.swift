@@ -2,21 +2,22 @@ import SwiftUI
 
 struct ConnectedAccountsView: View {
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AppLanguage.self) private var appLanguage
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("ACCOUNT")
+                    Text(Strings.connectedAccountsEyebrow)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.secondaryText)
 
-                    Text("Connected Accounts")
+                    Text(Strings.connectedAccountsTitle)
                         .font(MomentsStyle.georgiaItalic(34))
                         .foregroundColor(MomentsStyle.primaryText)
 
-                    Text("Manage linked services.")
+                    Text(Strings.connectedAccountsSubtitle)
                         .font(MomentsStyle.systemLight(14))
                         .foregroundColor(MomentsStyle.secondaryText)
                         .lineSpacing(4)
@@ -34,11 +35,11 @@ struct ConnectedAccountsView: View {
                             .frame(width: 32)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Spotify")
+                            Text(Strings.connectedAccountsSpotify)
                                 .font(MomentsStyle.systemMedium(15))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text(musicViewModel.isConnected ? "Connected" : "Not connected")
+                            Text(musicViewModel.isConnected ? Strings.connectedAccountsConnected : Strings.connectedAccountsNotConnected)
                                 .font(MomentsStyle.systemLight(12))
                                 .foregroundColor(MomentsStyle.secondaryText)
                         }
@@ -52,7 +53,7 @@ struct ConnectedAccountsView: View {
                                 musicViewModel.authorize()
                             }
                         } label: {
-                            Text(musicViewModel.isConnected ? "DISCONNECT" : "CONNECT")
+                            Text(musicViewModel.isConnected ? Strings.connectedAccountsDisconnect : Strings.connectedAccountsConnect)
                                 .font(.system(size: 9, weight: .light))
                                 .tracking(2)
                                 .foregroundColor(musicViewModel.isConnected ? .red.opacity(0.6) : MomentsStyle.primaryText)
@@ -74,7 +75,7 @@ struct ConnectedAccountsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Connected Accounts")
+                Text(Strings.connectedAccountsTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
@@ -86,5 +87,6 @@ struct ConnectedAccountsView: View {
     NavigationStack {
         ConnectedAccountsView()
             .environment(MusicViewModel())
+            .environment(AppLanguage.shared)
     }
 }

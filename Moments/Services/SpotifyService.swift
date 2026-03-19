@@ -333,10 +333,10 @@ extension SpotifyService: SPTAppRemoteDelegate {
             guard let self else { return }
             isConnected = false
 
-            // If the token may have expired, attempt a silent renewal once before
-            // surfacing the failure to the caller. The sessionManager will call
-            // didRenew (which reconnects) or didFailWith (which surfaces the error).
-            if !hasAttemptedRenewal, accessToken != nil {
+            // Code -2000 (connection refused / stream error) means Spotify is not
+            // running — renewal won't help. Surface the disconnect immediately.
+            let isConnectionRefused = (error as NSError?)?.code == -2000
+            if !isConnectionRefused, !hasAttemptedRenewal, accessToken != nil {
                 hasAttemptedRenewal = true
                 sessionManager.renewSession()
                 return
@@ -368,6 +368,10 @@ extension SpotifyService: SPTSessionManagerDelegate {
             guard let self else { return }
             let message = formatSpotifyError(error)
             Log.spotify.error("Session initiation failed: \(message, privacy: .private)")
+            // Clear the stale token so the next connect() doesn't loop on invalid_grant.
+            accessToken = nil
+            appRemote.connectionParameters.accessToken = nil
+            KeychainService.delete(key: Self.keychainTokenKey)
             onAuthorizationFailed?(message)
         }
     }

@@ -4,13 +4,14 @@ import SwiftUI
 
 struct MusicView: View {
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AppLanguage.self) private var appLanguage
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
                 HStack(alignment: .top) {
-                    SectionHeader("Music", subtitle: "Set the mood for every moment")
+                    SectionHeader(Strings.musicTitle, subtitle: Strings.musicSubtitle)
 
                     Spacer()
 
@@ -48,7 +49,7 @@ struct MusicView: View {
             .padding(.bottom, 28)
         }
 
-        Text("Connected to Spotify")
+        Text(Strings.musicConnectedToSpotify)
             .font(MomentsStyle.systemLight(14))
             .foregroundColor(MomentsStyle.secondaryText)
             .padding(.horizontal, 24)
@@ -64,7 +65,7 @@ struct MusicView: View {
                         .font(.system(size: 32, weight: .light))
                         .foregroundColor(MomentsStyle.secondaryText)
 
-                    Text("Connect your Spotify account to play music, browse your playlists, and control playback directly from Moments.")
+                    Text(Strings.musicConnectPrompt)
                         .font(MomentsStyle.systemLight(14))
                         .foregroundColor(MomentsStyle.secondaryText)
                         .multilineTextAlignment(.center)
@@ -77,7 +78,7 @@ struct MusicView: View {
                             Circle()
                                 .fill(Color(red: 0.12, green: 0.84, blue: 0.38))
                                 .frame(width: 8, height: 8)
-                            Text("CONNECT SPOTIFY")
+                            Text(Strings.musicConnectSpotify)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                         }
@@ -140,23 +141,19 @@ struct NowPlayingCard: View {
     var body: some View {
         HairlineCard {
             VStack(spacing: 16) {
-                // Album art — explicit GeometryReader so the image never
-                // overflows its bounds and overlaps the controls below.
-                GeometryReader { geo in
-                    let side = geo.size.width
-                    Group {
-                        if let artworkURL = playerState.artworkURL {
-                            RemoteStorageImageView(urlString: artworkURL.absoluteString) {
-                                artworkPlaceholder
-                            }
-                        } else {
+                // Album art
+                Group {
+                    if let artworkURL = playerState.artworkURL {
+                        RemoteStorageImageView(urlString: artworkURL.absoluteString) {
                             artworkPlaceholder
                         }
+                    } else {
+                        artworkPlaceholder
                     }
-                    .frame(width: side, height: side)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                .frame(maxWidth: .infinity)
                 .aspectRatio(1, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 // Track info
                 VStack(spacing: 4) {
@@ -199,29 +196,34 @@ struct NowPlayingCard: View {
                     }
                 }
 
-                // Playback controls — use simultaneousGesture so taps are
-                // never swallowed by a surrounding NavigationLink or ScrollView.
-                HStack(spacing: 40) {
-                    Image(systemName: "backward.end")
-                        .font(.system(size: 18, weight: .light))
-                        .foregroundColor(MomentsStyle.primaryText)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                        .simultaneousGesture(TapGesture().onEnded { onPrevious() })
+                // Playback controls
+                HStack(spacing: 44) {
+                    Button(action: onPrevious) {
+                        Image(systemName: "backward.end")
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 52, height: 52)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
 
-                    Image(systemName: playerState.isPaused ? "play.circle.fill" : "pause.circle.fill")
-                        .font(.system(size: 40, weight: .light))
-                        .foregroundColor(MomentsStyle.primaryText)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                        .simultaneousGesture(TapGesture().onEnded { onPlayPause() })
+                    Button(action: onPlayPause) {
+                        Image(systemName: playerState.isPaused ? "play.circle.fill" : "pause.circle.fill")
+                            .font(.system(size: 52, weight: .light))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 56, height: 56)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
 
-                    Image(systemName: "forward.end")
-                        .font(.system(size: 18, weight: .light))
-                        .foregroundColor(MomentsStyle.primaryText)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                        .simultaneousGesture(TapGesture().onEnded { onNext() })
+                    Button(action: onNext) {
+                        Image(systemName: "forward.end")
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(MomentsStyle.primaryText)
+                            .frame(width: 52, height: 52)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

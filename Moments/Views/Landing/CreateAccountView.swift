@@ -4,6 +4,7 @@ import SwiftUI
 struct CreateAccountView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var step = 0
 
     // Step 1: Account
@@ -20,7 +21,7 @@ struct CreateAccountView: View {
     // Step 3: Interests
     @State private var selectedInterests: Set<String> = []
 
-    private let allInterests = AppConstants.allInterests
+    private var allInterests: [String] { AppConstants.allInterests }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,8 +68,8 @@ struct CreateAccountView: View {
                               trimmedEmail.contains("."),
                               password.count >= 6 else {
                             authViewModel.errorMessage = password.count < 6 && !password.isEmpty
-                                ? "Password must be at least 6 characters."
-                                : "Please fill in all fields."
+                                ? Strings.createAccountPasswordTooShort
+                                : Strings.createAccountFillAllFields
                             return
                         }
                         authViewModel.errorMessage = nil
@@ -76,11 +77,11 @@ struct CreateAccountView: View {
                     } else if step == 1 {
                         let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmedUsername.isEmpty else {
-                            authViewModel.errorMessage = "Please choose a username."
+                            authViewModel.errorMessage = Strings.createAccountChooseUsername
                             return
                         }
                         guard trimmedUsername.wholeMatch(of: AppConstants.usernamePattern) != nil else {
-                            authViewModel.errorMessage = "Username can only contain letters, numbers, dots, and underscores (2-30 characters)."
+                            authViewModel.errorMessage = Strings.createAccountUsernameInvalid
                             return
                         }
                         authViewModel.errorMessage = nil
@@ -109,7 +110,7 @@ struct CreateAccountView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                     } else {
-                        Text(step < 2 ? "CONTINUE" : "GET STARTED")
+                        Text(step < 2 ? Strings.createAccountContinue : Strings.createAccountGetStarted)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)
@@ -144,11 +145,11 @@ struct CreateAccountView: View {
     private var accountStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Create account")
+                Text(Strings.createAccountTitle)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("Let's get you started")
+                Text(Strings.createAccountSubtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
@@ -157,21 +158,21 @@ struct CreateAccountView: View {
 
             VStack(spacing: 24) {
                 AuthTextField(
-                    label: "FULL NAME",
-                    placeholder: "Your name",
+                    label: Strings.createAccountFullNameLabel,
+                    placeholder: Strings.createAccountFullNamePlaceholder,
                     text: $fullName
                 )
 
                 AuthTextField(
-                    label: "EMAIL",
-                    placeholder: "your@email.com",
+                    label: Strings.createAccountEmailLabel,
+                    placeholder: Strings.createAccountEmailPlaceholder,
                     text: $email,
                     keyboardType: .emailAddress
                 )
 
                 AuthSecureField(
-                    label: "PASSWORD",
-                    placeholder: "Choose a password",
+                    label: Strings.createAccountPasswordLabel,
+                    placeholder: Strings.createAccountPasswordPlaceholder,
                     text: $password
                 )
             }
@@ -183,11 +184,11 @@ struct CreateAccountView: View {
     private var profileStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Your profile")
+                Text(Strings.createAccountProfileTitle)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("How others will see you")
+                Text(Strings.createAccountProfileSubtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }
@@ -212,7 +213,7 @@ struct CreateAccountView: View {
                                             .font(.system(size: 22, weight: .light))
                                             .foregroundColor(MomentsStyle.inactive)
 
-                                        Text("ADD PHOTO")
+                                        Text(Strings.createAccountAddPhoto)
                                             .font(.system(size: 7, weight: .light))
                                             .tracking(2)
                                             .foregroundColor(MomentsStyle.secondaryText)
@@ -229,18 +230,18 @@ struct CreateAccountView: View {
 
             VStack(spacing: 24) {
                 AuthTextField(
-                    label: "USERNAME",
-                    placeholder: "@username",
+                    label: Strings.createAccountUsernameLabel,
+                    placeholder: Strings.createAccountUsernamePlaceholder,
                     text: $username
                 )
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("BIO")
+                    Text(Strings.createAccountBioLabel)
                         .font(.system(size: 9, weight: .light))
                         .tracking(2)
                         .foregroundColor(MomentsStyle.secondaryText)
 
-                    TextField("Tell us about yourself...", text: $bio, axis: .vertical)
+                    TextField(Strings.createAccountBioPlaceholder, text: $bio, axis: .vertical)
                         .font(MomentsStyle.systemLight(16))
                         .foregroundColor(MomentsStyle.primaryText)
                         .lineLimit(3...5)
@@ -261,11 +262,11 @@ struct CreateAccountView: View {
     private var interestsStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Your interests")
+                Text(Strings.createAccountInterestsTitle)
                     .font(MomentsStyle.georgiaItalic(34))
                     .foregroundColor(MomentsStyle.primaryText)
 
-                Text("Pick at least 3 to personalize your experience")
+                Text(Strings.createAccountInterestsSubtitle)
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
             }

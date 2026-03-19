@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GameDetailView: View {
     let game: Game
+    @Environment(AppLanguage.self) private var appLanguage
 
     var body: some View {
         ScrollView {
@@ -16,7 +17,7 @@ struct GameDetailView: View {
                                 .font(.system(size: 48, weight: .light))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text(game.tag.uppercased())
+                            Text(game.localizedTag.uppercased())
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.secondaryText)
@@ -27,17 +28,17 @@ struct GameDetailView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     // Title section
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(game.name)
+                        Text(game.localizedName)
                             .font(MomentsStyle.georgiaItalic(26))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text(game.description)
+                        Text(game.localizedDescription)
                             .font(MomentsStyle.systemLight(14))
                             .foregroundColor(MomentsStyle.secondaryText)
 
                         HStack(spacing: 6) {
-                            PillTag(label: game.tag)
-                            PillTag(label: "\(game.promptCount) prompts")
+                            PillTag(label: game.localizedTag)
+                            PillTag(label: "\(game.promptCount) \(Strings.gamesPrompts)")
                         }
                         .padding(.top, 4)
                     }
@@ -49,12 +50,12 @@ struct GameDetailView: View {
 
                     // How to Play
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("How to Play")
+                        Text(Strings.gamesHowToPlay)
                             .font(MomentsStyle.systemMedium(18))
                             .foregroundColor(MomentsStyle.primaryText)
 
                         VStack(alignment: .leading, spacing: 16) {
-                            ForEach(Array(game.rules.enumerated()), id: \.offset) { index, rule in
+                            ForEach(Array(game.localizedRules.enumerated()), id: \.offset) { index, rule in
                                 HStack(alignment: .top, spacing: 14) {
                                     Text("\(index + 1)")
                                         .font(MomentsStyle.systemMedium(14))
@@ -77,7 +78,7 @@ struct GameDetailView: View {
 
                     // Start Game button
                     NavigationLink(value: GamePlayDestination(gameNumber: game.number)) {
-                        Text("START GAME")
+                        Text(Strings.gamesStartGame)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)
@@ -95,7 +96,7 @@ struct GameDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(game.name)
+                Text(game.localizedName)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }

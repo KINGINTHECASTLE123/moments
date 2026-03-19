@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FoodView: View {
     @Environment(FoodViewModel.self) private var foodViewModel
+    @Environment(AppLanguage.self) private var appLanguage
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedCategory: FoodCategory = .starters
 
     private var dishes: [FirestoreDish] {
@@ -10,9 +12,9 @@ struct FoodView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader("Food", subtitle: "Curated dishes for every course")
+            SectionHeader(Strings.foodTitle, subtitle: Strings.foodSubtitle)
                 .padding(.horizontal, 24)
-                .padding(.top, 24)
+                .padding(.top, 8)
                 .padding(.bottom, 24)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -25,7 +27,7 @@ struct FoodView: View {
                             }
                         } label: {
                             PillTag(
-                                label: category.rawValue,
+                                label: category.displayName,
                                 filled: selectedCategory == category
                             )
                         }
@@ -52,7 +54,7 @@ struct FoodView: View {
                         .font(.system(size: 36, weight: .light))
                         .foregroundColor(MomentsStyle.inactive)
 
-                    Text("Couldn't load dishes")
+                    Text(Strings.foodCouldntLoad)
                         .font(MomentsStyle.systemMedium(16))
                         .foregroundColor(MomentsStyle.primaryText)
 
@@ -64,7 +66,7 @@ struct FoodView: View {
                     Button {
                         Task { await foodViewModel.fetchDishes() }
                     } label: {
-                        Text("TRY AGAIN")
+                        Text(Strings.foodTryAgain)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.primaryText)
@@ -80,7 +82,7 @@ struct FoodView: View {
                 Spacer()
             } else if dishes.isEmpty {
                 Spacer()
-                Text("No dishes have been added for \(selectedCategory.rawValue.lowercased()) yet.")
+                Text(Strings.foodEmptyState(selectedCategory.displayName))
                     .font(MomentsStyle.systemLight(14))
                     .foregroundColor(MomentsStyle.secondaryText)
                     .multilineTextAlignment(.center)
@@ -106,6 +108,18 @@ struct FoodView: View {
             }
         }
         .background(MomentsStyle.background)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                }
+                .accessibilityLabel(Strings.tabHome)
+            }
+        }
         .navigationDestination(for: FirestoreDish.self) { dish in
             DishDetailView(dish: dish)
         }
@@ -177,7 +191,7 @@ struct DishDetailView: View {
                         .frame(height: 0.5)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Ingredients")
+                        Text(Strings.foodIngredients)
                             .font(MomentsStyle.systemMedium(18))
                             .foregroundColor(MomentsStyle.primaryText)
 
@@ -202,7 +216,7 @@ struct DishDetailView: View {
                         .frame(height: 0.5)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Instructions")
+                        Text(Strings.foodInstructions)
                             .font(MomentsStyle.systemMedium(18))
                             .foregroundColor(MomentsStyle.primaryText)
 
@@ -255,5 +269,6 @@ struct DishDetailView: View {
     NavigationStack {
         FoodView()
             .environment(FoodViewModel())
+            .environment(AppLanguage.shared)
     }
 }

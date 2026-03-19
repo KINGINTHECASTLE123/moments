@@ -3,6 +3,7 @@ import SwiftUI
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var email = ""
     @State private var showConfirmation = false
 
@@ -13,11 +14,11 @@ struct ForgotPasswordView: View {
                     if !showConfirmation {
                         // Request form
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Reset password")
+                            Text(Strings.forgotPasswordTitle)
                                 .font(MomentsStyle.georgiaItalic(34))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("Enter your email and we'll send you a link to reset your password.")
+                            Text(Strings.forgotPasswordSubtitle)
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .lineSpacing(4)
@@ -26,8 +27,8 @@ struct ForgotPasswordView: View {
                         .padding(.bottom, 40)
 
                         AuthTextField(
-                            label: "EMAIL",
-                            placeholder: "your@email.com",
+                            label: Strings.forgotPasswordEmailLabel,
+                            placeholder: Strings.forgotPasswordEmailPlaceholder,
                             text: $email,
                             keyboardType: .emailAddress
                         )
@@ -48,11 +49,11 @@ struct ForgotPasswordView: View {
                                 .font(.system(size: 48, weight: .light))
                                 .foregroundColor(MomentsStyle.inactive)
 
-                            Text("Check your email")
+                            Text(Strings.forgotPasswordCheckEmail)
                                 .font(MomentsStyle.georgiaItalic(28))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("We've sent a password reset link to\n\(email)")
+                            Text(Strings.verificationSentTo(email))
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .multilineTextAlignment(.center)
@@ -90,7 +91,7 @@ struct ForgotPasswordView: View {
                                 .background(MomentsStyle.primaryText)
                                 .clipShape(Capsule())
                         } else {
-                            Text("SEND RESET LINK")
+                            Text(Strings.forgotPasswordSendButton)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.background)
@@ -108,7 +109,7 @@ struct ForgotPasswordView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("BACK TO SIGN IN")
+                        Text(Strings.forgotPasswordBackToSignIn)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)

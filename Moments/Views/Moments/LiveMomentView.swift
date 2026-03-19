@@ -4,8 +4,7 @@ struct LiveMomentView: View {
     @Environment(MomentPlannerViewModel.self) private var planner
     @Environment(MusicViewModel.self) private var musicViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var elapsedText = ""
-    @State private var timer: Timer?
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var showEndConfirmation = false
 
     var body: some View {
@@ -24,11 +23,6 @@ struct LiveMomentView: View {
                     }
 
                     Spacer()
-
-                    Text(elapsedText)
-                        .font(MomentsStyle.systemLight(13))
-                        .foregroundColor(MomentsStyle.secondaryText)
-                        .monospacedDigit()
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
@@ -50,10 +44,10 @@ struct LiveMomentView: View {
                 Button {
                     showEndConfirmation = true
                 } label: {
-                    Text("END MOMENT")
+                    Text(Strings.liveMomentEndMoment)
                         .font(.system(size: 11, weight: .light))
                         .tracking(2)
-                        .foregroundColor(MomentsStyle.secondaryText)
+                        .foregroundColor(.red.opacity(0.7))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .overlay(
@@ -69,7 +63,7 @@ struct LiveMomentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Live")
+                Text(Strings.liveMomentLive)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
@@ -78,30 +72,24 @@ struct LiveMomentView: View {
             GameDetailView(game: game)
         }
         .confirmationDialog(
-            "End this moment?",
+            Strings.liveMomentEndAlertTitle,
             isPresented: $showEndConfirmation,
             titleVisibility: .visible
         ) {
-            Button("End Moment", role: .destructive) {
+            Button(Strings.liveMomentEndAlertConfirm, role: .destructive) {
                 planner.endMoment()
                 dismiss()
             }
-            Button("Cancel", role: .cancel) {}
+            Button(Strings.liveMomentEndAlertCancel, role: .cancel) {}
         }
-        .onAppear {
-            updateElapsed()
-            startTimer()
-        }
-        .onDisappear {
-            stopTimer()
-        }
+
     }
 
     // MARK: - Now Playing
 
     @ViewBuilder
     private var nowPlayingSection: some View {
-        Text("NOW PLAYING")
+        Text(Strings.liveMomentNowPlaying)
             .font(.system(size: 10, weight: .light))
             .tracking(3)
             .foregroundColor(MomentsStyle.secondaryText)
@@ -139,7 +127,7 @@ struct LiveMomentView: View {
                             .font(MomentsStyle.systemMedium(15))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text("Tap to play on Spotify")
+                        Text(Strings.liveMomentTapToPlay)
                             .font(MomentsStyle.systemLight(12))
                             .foregroundColor(MomentsStyle.secondaryText)
                     }
@@ -157,7 +145,7 @@ struct LiveMomentView: View {
                         .font(.system(size: 18, weight: .light))
                         .foregroundColor(MomentsStyle.inactive)
 
-                    Text("No playlist selected")
+                    Text(Strings.liveMomentNoPlaylist)
                         .font(MomentsStyle.systemLight(14))
                         .foregroundColor(MomentsStyle.secondaryText)
 
@@ -173,7 +161,7 @@ struct LiveMomentView: View {
     @ViewBuilder
     private var menuSection: some View {
         if let dishIds = planner.currentPlan?.dishIds, !dishIds.isEmpty {
-            Text("TONIGHT'S MENU")
+            Text(Strings.liveMomentTonightsMenu)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
@@ -221,7 +209,7 @@ struct LiveMomentView: View {
     @ViewBuilder
     private var gamesSection: some View {
         if let gameNumbers = planner.currentPlan?.gameNumbers, !gameNumbers.isEmpty {
-            Text("GAMES")
+            Text(Strings.liveMomentGames)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)
@@ -245,18 +233,18 @@ struct LiveMomentView: View {
                                     )
 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(game.name)
+                                    Text(game.localizedName)
                                         .font(MomentsStyle.systemMedium(15))
                                         .foregroundColor(MomentsStyle.primaryText)
 
-                                    Text(game.description)
+                                    Text(game.localizedDescription)
                                         .font(MomentsStyle.systemLight(13))
                                         .foregroundColor(MomentsStyle.secondaryText)
                                 }
 
                                 Spacer()
 
-                                PillTag(label: game.tag)
+                                PillTag(label: game.localizedTag)
 
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 12, weight: .light))
@@ -279,29 +267,6 @@ struct LiveMomentView: View {
         }
     }
 
-    // MARK: - Timer
-
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            updateElapsed()
-        }
-    }
-
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private func updateElapsed() {
-        guard let startedAt = planner.currentPlan?.startedAt else {
-            elapsedText = "0:00"
-            return
-        }
-        let elapsed = Date().timeIntervalSince(startedAt)
-        let hours = Int(elapsed) / 3600
-        let minutes = (Int(elapsed) % 3600) / 60
-        elapsedText = String(format: "%d:%02d", hours, minutes)
-    }
 }
 
 // MARK: - Compact Now Playing Card

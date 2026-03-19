@@ -18,6 +18,7 @@ struct SettingsView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
     @Environment(NotificationService.self) private var notificationService
+    @Environment(AppLanguage.self) private var appLanguage
     @AppStorage(StorageKeys.notificationsEnabled) private var notificationsEnabled = true
     @AppStorage(StorageKeys.momentReminders) private var momentReminders = true
     @AppStorage(StorageKeys.friendActivity) private var friendActivity = false
@@ -33,100 +34,100 @@ struct SettingsView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Account section
-                SettingsSection(title: "Account") {
+                SettingsSection(title: Strings.settingsSectionAccount) {
                     NavigationLink(value: SettingsDestination.editProfile) {
-                        SettingsRow(icon: "person.crop.circle", title: "Edit Profile", subtitle: "Name, bio, photo")
+                        SettingsRow(icon: "person.crop.circle", title: Strings.settingsRowEditProfile, subtitle: Strings.settingsRowEditProfileSubtitle)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.email) {
-                        SettingsRow(icon: "envelope", title: "Email", subtitle: userViewModel.currentUser?.email ?? "")
+                        SettingsRow(icon: "envelope", title: Strings.settingsRowEmail, subtitle: userViewModel.currentUser?.email ?? "")
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.password) {
-                        SettingsRow(icon: "lock", title: "Password", subtitle: "Change your password")
+                        SettingsRow(icon: "lock", title: Strings.settingsRowPassword, subtitle: Strings.settingsRowPasswordSubtitle)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.connectedAccounts) {
-                        SettingsRow(icon: "link", title: "Connected Accounts", subtitle: "Spotify, Instagram")
+                        SettingsRow(icon: "link", title: Strings.settingsRowConnectedAccounts, subtitle: Strings.settingsRowConnectedAccountsSubtitle)
                     }
                     .buttonStyle(.plain)
                 }
 
                 // Notifications section
-                SettingsSection(title: "Notifications") {
-                    SettingsToggleRow(icon: "bell", title: "Push Notifications", isOn: $notificationsEnabled)
+                SettingsSection(title: Strings.settingsSectionNotifications) {
+                    SettingsToggleRow(icon: "bell", title: Strings.settingsRowPushNotifications, isOn: $notificationsEnabled)
                     SettingsDivider()
-                    SettingsToggleRow(icon: "clock", title: "Moment Reminders", isOn: $momentReminders)
+                    SettingsToggleRow(icon: "clock", title: Strings.settingsRowMomentReminders, isOn: $momentReminders)
                     SettingsDivider()
-                    SettingsToggleRow(icon: "person.2", title: "Friend Activity", isOn: $friendActivity)
+                    SettingsToggleRow(icon: "person.2", title: Strings.settingsRowFriendActivity, isOn: $friendActivity)
                 }
 
                 // Appearance section
-                SettingsSection(title: "Appearance") {
-                    SettingsToggleRow(icon: "moon", title: "Dark Mode", isOn: $darkMode)
+                SettingsSection(title: Strings.settingsSectionAppearance) {
+                    SettingsToggleRow(icon: "moon", title: Strings.settingsRowDarkMode, isOn: $darkMode)
                     SettingsDivider()
-                    SettingsToggleRow(icon: "hand.tap", title: "Haptic Feedback", isOn: $haptics)
+                    SettingsToggleRow(icon: "hand.tap", title: Strings.settingsRowHapticFeedback, isOn: $haptics)
                 }
 
                 // Privacy section
-                SettingsSection(title: "Privacy") {
+                SettingsSection(title: Strings.settingsSectionPrivacy) {
                     NavigationLink(value: SettingsDestination.profileVisibility) {
-                        SettingsRow(icon: "eye.slash", title: "Profile Visibility", subtitle: "Friends only")
+                        SettingsRow(icon: "eye.slash", title: Strings.settingsRowProfileVisibility, subtitle: Strings.settingsRowProfileVisibilitySubtitle)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.blockedUsers) {
-                        SettingsRow(icon: "hand.raised", title: "Blocked Users", subtitle: "None")
+                        SettingsRow(icon: "hand.raised", title: Strings.settingsRowBlockedUsers, subtitle: Strings.settingsRowBlockedUsersSubtitle)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.dataPrivacy) {
-                        SettingsRow(icon: "doc.text", title: "Data & Privacy", subtitle: "Download or delete your data")
+                        SettingsRow(icon: "doc.text", title: Strings.settingsRowDataPrivacy, subtitle: Strings.settingsRowDataPrivacySubtitle)
                     }
                     .buttonStyle(.plain)
                 }
 
                 // Support section
-                SettingsSection(title: "Support") {
+                SettingsSection(title: Strings.settingsSectionSupport) {
                     Button {
                         openURL(URL(string: "mailto:momentsapp1@outlook.com?subject=Help")!)
                     } label: {
-                        SettingsRow(icon: "questionmark.circle", title: "Help Center", subtitle: nil)
+                        SettingsRow(icon: "questionmark.circle", title: Strings.settingsRowHelpCenter, subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     Button {
                         openURL(URL(string: "mailto:momentsapp1@outlook.com")!)
                     } label: {
-                        SettingsRow(icon: "envelope.open", title: "Contact Us", subtitle: nil)
+                        SettingsRow(icon: "envelope.open", title: Strings.settingsRowContactUs, subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     Button {
                         openURL(URL(string: "itms-apps://itunes.apple.com/app/id6741511686?action=write-review")!)
                     } label: {
-                        SettingsRow(icon: "star", title: "Rate Moments", subtitle: nil)
+                        SettingsRow(icon: "star", title: Strings.settingsRowRateMoments, subtitle: nil)
                     }
                     .buttonStyle(.plain)
                 }
 
                 // About section
-                SettingsSection(title: "About") {
+                SettingsSection(title: Strings.settingsSectionAbout) {
                     NavigationLink(value: SettingsDestination.termsOfService) {
-                        SettingsRow(icon: "doc.plaintext", title: "Terms of Service", subtitle: nil)
+                        SettingsRow(icon: "doc.plaintext", title: Strings.settingsRowTermsOfService, subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.privacyPolicy) {
-                        SettingsRow(icon: "shield", title: "Privacy Policy", subtitle: nil)
+                        SettingsRow(icon: "shield", title: Strings.settingsRowPrivacyPolicy, subtitle: nil)
                     }
                     .buttonStyle(.plain)
                     SettingsDivider()
                     NavigationLink(value: SettingsDestination.version) {
-                        SettingsRow(icon: "info.circle", title: "Version", subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                        SettingsRow(icon: "info.circle", title: Strings.settingsRowVersion, subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     }
                     .buttonStyle(.plain)
                 }
@@ -135,7 +136,7 @@ struct SettingsView: View {
                 Button {
                     showSignOutConfirm = true
                 } label: {
-                    Text("SIGN OUT")
+                    Text(Strings.settingsSignOut)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.secondaryText)
@@ -154,7 +155,7 @@ struct SettingsView: View {
                     deletePassword = ""
                     showDeleteConfirm = true
                 } label: {
-                    Text("DELETE ACCOUNT")
+                    Text(Strings.settingsDeleteAccount)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(Color.red.opacity(0.6))
@@ -190,22 +191,37 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Settings")
+                Text(Strings.settingsTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Haptics.select()
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        AppLanguage.shared.current = AppLanguage.shared.current == .english ? .danish : .english
+                    }
+                } label: {
+                    Image(appLanguage.current == .english ? "flag-da" : "flag-en")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 38, height: 38)
+                }
+                .buttonStyle(.plain)
+            }
+            .sharedBackgroundVisibility(.hidden)
         }
         .navigationDestination(for: SettingsDestination.self) { destination in
             SettingsDestinationView(destination: destination)
         }
-        .alert("Sign Out", isPresented: $showSignOutConfirm) {
-            Button("Cancel", role: .cancel) { }
-            Button("Sign Out", role: .destructive) {
+        .alert(Strings.settingsSignOutAlertTitle, isPresented: $showSignOutConfirm) {
+            Button(Strings.settingsCancel, role: .cancel) { }
+            Button(Strings.settingsSignOutConfirm, role: .destructive) {
                 Haptics.warning()
                 authViewModel.signOut()
             }
         } message: {
-            Text("Are you sure you want to sign out?")
+            Text(Strings.settingsSignOutAlertMessage)
         }
         .onChange(of: notificationsEnabled) { _, enabled in
             Task {
@@ -225,18 +241,18 @@ struct SettingsView: View {
                 await notificationService.updateMomentReminders(enabled: enabled)
             }
         }
-        .alert("Delete Account", isPresented: $showDeleteConfirm) {
-            Button("Cancel", role: .cancel) { }
-            Button("Continue", role: .destructive) {
+        .alert(Strings.settingsDeleteAlertTitle, isPresented: $showDeleteConfirm) {
+            Button(Strings.settingsCancel, role: .cancel) { }
+            Button(Strings.settingsDeleteContinue, role: .destructive) {
                 showDeleteReauth = true
             }
         } message: {
-            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+            Text(Strings.settingsDeleteAlertMessage)
         }
-        .alert("Confirm Password", isPresented: $showDeleteReauth) {
-            SecureField("Password", text: $deletePassword)
-            Button("Cancel", role: .cancel) { }
-            Button("Delete Forever", role: .destructive) {
+        .alert(Strings.settingsDeleteReauthTitle, isPresented: $showDeleteReauth) {
+            SecureField(Strings.settingsDeletePasswordPlaceholder, text: $deletePassword)
+            Button(Strings.settingsCancel, role: .cancel) { }
+            Button(Strings.settingsDeleteForever, role: .destructive) {
                 Task {
                     guard case .signedIn(let uid) = authViewModel.authState else { return }
                     let reauthed = await authViewModel.reauthenticate(
@@ -252,50 +268,10 @@ struct SettingsView: View {
                 }
             }
         } message: {
-            Text("Enter your password to confirm account deletion.")
+            Text(Strings.settingsDeleteReauthMessage)
         }
     }
 
-}
-
-// MARK: - Settings Content Strings
-
-private enum SettingsContent {
-    static let termsOfService = """
-        Last updated: March 2026
-
-        By using Moments, you agree to these terms. You must be at least 13 years old to use this app.
-
-        You are responsible for all content you post. Do not post content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable.
-
-        We reserve the right to remove content or suspend accounts that violate these terms without prior notice.
-
-        Your content remains yours. By posting, you grant Moments a non-exclusive license to display it within the app.
-
-        The app is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the app.
-
-        We may update these terms at any time. Continued use after changes constitutes acceptance.
-
-        For questions, contact us at momentsapp1@outlook.com.
-        """
-
-    static let privacyPolicy = """
-        Last updated: March 2026
-
-        Moments collects: your name, email address, profile photo, and content you post (text and images). This data is stored securely using Firebase (Google Cloud).
-
-        We use your data solely to provide the app's functionality: authentication, profile display, and community features.
-
-        We do not sell, share, or rent your personal data to third parties. We do not track you across other apps or websites.
-
-        If you connect Spotify, we store an access token securely in your device's Keychain. We do not access your Spotify account data beyond playback control and playlist cover art.
-
-        You can delete your account and all associated data at any time from Settings → Delete Account.
-
-        We use no third-party analytics or advertising SDKs. The app does not contain ads.
-
-        For data requests or questions, contact momentsapp1@outlook.com.
-        """
 }
 
 // MARK: - Settings Destination View
@@ -314,17 +290,17 @@ struct SettingsDestinationView: View {
         case .connectedAccounts:
             ConnectedAccountsView()
         case .profileVisibility:
-            detail("Profile Visibility", eyebrow: "Privacy", headline: "Control who sees your profile.", text: "Your profile is currently visible to friends only. Adjust visibility when you want to be more discoverable or keep things close.")
+            detail(Strings.settingsDetailProfileVisibilityTitle, eyebrow: Strings.settingsDetailProfileVisibilityEyebrow, headline: Strings.settingsDetailProfileVisibilityHeadline, text: Strings.settingsDetailProfileVisibilityBody)
         case .blockedUsers:
-            detail("Blocked Users", eyebrow: "Privacy", headline: "Review people you have blocked.", text: "Blocking removes visibility across community interactions and prevents new activity between you and those accounts.")
+            detail(Strings.settingsDetailBlockedUsersTitle, eyebrow: Strings.settingsDetailBlockedUsersEyebrow, headline: Strings.settingsDetailBlockedUsersHeadline, text: Strings.settingsDetailBlockedUsersBody)
         case .dataPrivacy:
-            detail("Data & Privacy", eyebrow: "Privacy", headline: "Manage the data attached to your account.", text: "You can request an export of your account information or start a deletion request if you want to remove your data from Moments.")
+            detail(Strings.settingsDetailDataPrivacyTitle, eyebrow: Strings.settingsDetailDataPrivacyEyebrow, headline: Strings.settingsDetailDataPrivacyHeadline, text: Strings.settingsDetailDataPrivacyBody)
         case .termsOfService:
-            detail("Terms of Service", eyebrow: "About", headline: "Terms of use for Moments.", text: SettingsContent.termsOfService)
+            detail(Strings.settingsDetailTermsTitle, eyebrow: Strings.settingsDetailTermsEyebrow, headline: Strings.settingsDetailTermsHeadline, text: Strings.settingsDetailTermsBody)
         case .privacyPolicy:
-            detail("Privacy Policy", eyebrow: "About", headline: "How we handle your information.", text: SettingsContent.privacyPolicy)
+            detail(Strings.settingsDetailPrivacyTitle, eyebrow: Strings.settingsDetailPrivacyEyebrow, headline: Strings.settingsDetailPrivacyHeadline, text: Strings.settingsDetailPrivacyBody)
         case .version:
-            detail("Version", eyebrow: "About", headline: "Current build", text: "Moments \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\nDesigned in Copenhagen with a focus on intimate social experiences.")
+            detail(Strings.settingsDetailVersionTitle, eyebrow: Strings.settingsDetailVersionEyebrow, headline: Strings.settingsDetailVersionHeadline, text: Strings.settingsDetailVersionBody(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"))
         }
     }
 
@@ -493,5 +469,6 @@ struct SettingsDetailView: View {
             .environment(AuthViewModel())
             .environment(UserViewModel())
             .environment(NotificationService())
+            .environment(AppLanguage.shared)
     }
 }

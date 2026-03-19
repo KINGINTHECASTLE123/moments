@@ -4,6 +4,7 @@ struct ChangePasswordView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var confirmPassword = ""
@@ -23,16 +24,16 @@ struct ChangePasswordView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     if !showSuccess {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("ACCOUNT")
+                            Text(Strings.changePasswordEyebrow)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.secondaryText)
 
-                            Text("Change password")
+                            Text(Strings.changePasswordTitle)
                                 .font(MomentsStyle.georgiaItalic(34))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("Choose a strong password you haven't used before.")
+                            Text(Strings.changePasswordSubtitle)
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .lineSpacing(4)
@@ -42,26 +43,26 @@ struct ChangePasswordView: View {
 
                         VStack(spacing: 24) {
                             AuthSecureField(
-                                label: "CURRENT PASSWORD",
-                                placeholder: "Enter current password",
+                                label: Strings.changePasswordCurrentLabel,
+                                placeholder: Strings.changePasswordCurrentPlaceholder,
                                 text: $currentPassword
                             )
 
                             AuthSecureField(
-                                label: "NEW PASSWORD",
-                                placeholder: "At least 6 characters",
+                                label: Strings.changePasswordNewLabel,
+                                placeholder: Strings.changePasswordNewPlaceholder,
                                 text: $newPassword
                             )
 
                             AuthSecureField(
-                                label: "CONFIRM PASSWORD",
-                                placeholder: "Re-enter new password",
+                                label: Strings.changePasswordConfirmLabel,
+                                placeholder: Strings.changePasswordConfirmPlaceholder,
                                 text: $confirmPassword
                             )
                         }
 
                         if !confirmPassword.isEmpty && !passwordsMatch {
-                            Text("Passwords don't match.")
+                            Text(Strings.changePasswordMismatch)
                                 .font(MomentsStyle.systemLight(12))
                                 .foregroundColor(.red.opacity(0.8))
                                 .padding(.top, 16)
@@ -81,11 +82,11 @@ struct ChangePasswordView: View {
                                 .font(.system(size: 48, weight: .light))
                                 .foregroundColor(MomentsStyle.inactive)
 
-                            Text("Password updated")
+                            Text(Strings.changePasswordSuccessTitle)
                                 .font(MomentsStyle.georgiaItalic(28))
                                 .foregroundColor(MomentsStyle.primaryText)
 
-                            Text("Your password has been changed successfully.")
+                            Text(Strings.changePasswordSuccessSubtitle)
                                 .font(MomentsStyle.systemLight(14))
                                 .foregroundColor(MomentsStyle.secondaryText)
                                 .multilineTextAlignment(.center)
@@ -128,7 +129,7 @@ struct ChangePasswordView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                     } else {
-                        Text(showSuccess ? "DONE" : "UPDATE PASSWORD")
+                        Text(showSuccess ? Strings.changePasswordDone : Strings.changePasswordUpdateButton)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)
@@ -151,7 +152,7 @@ struct ChangePasswordView: View {
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Password")
+                Text(Strings.changePasswordNavigationTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
@@ -167,5 +168,6 @@ struct ChangePasswordView: View {
         ChangePasswordView()
             .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(AppLanguage.shared)
     }
 }

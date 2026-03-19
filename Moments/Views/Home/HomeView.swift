@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum HomeDestination: Hashable {
-    case mainTabs(MomentsTab)
     case profile
     case settings
     case createMoment
@@ -18,9 +17,11 @@ struct HomeView: View {
     @Environment(AppContentViewModel.self) private var appContentViewModel
     @Environment(UserViewModel.self) private var userViewModel
     @Environment(MomentPlannerViewModel.self) private var planner
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var path = NavigationPath()
     @State private var showProfile = false
     @State private var showLiveMoment = false
+    @State private var activeTab: MomentsTab? = nil
 
     var headerFontStyle: HeaderFontStyle = .georgiaItalic
 
@@ -83,7 +84,7 @@ struct HomeView: View {
                                 .background(MomentsStyle.surfaceSecondary)
                                 .clipShape(Circle())
                         }
-                        .accessibilityLabel("Create new moment")
+                        .accessibilityLabel(Strings.homeCreateMoment)
                     }
                 }
                 .padding(.horizontal, spacing + 15)
@@ -108,20 +109,20 @@ struct HomeView: View {
                         // Left column
                         VStack(spacing: spacing) {
                             BentoTile(
-                                title: tileLabel("Games"),
+                                title: tileLabel(Strings.tabGames),
                                 imageURL: appContentViewModel.gamesImageURL,
                                 titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.games))
+                                activeTab = .games
                             }
                             .frame(height: gamesH)
 
                             BentoTile(
-                                title: tileLabel("Community"),
+                                title: tileLabel(Strings.tabCommunity),
                                 imageURL: appContentViewModel.communityImageURL,
                                 titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.community))
+                                activeTab = .community
                             }
                             .frame(height: communityH)
                         }
@@ -130,29 +131,29 @@ struct HomeView: View {
                         // Right column
                         VStack(spacing: spacing) {
                             BentoTile(
-                                title: tileLabel("Music"),
+                                title: tileLabel(Strings.tabMusic),
                                 imageURL: appContentViewModel.musicImageURL,
                                 titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.music))
+                                activeTab = .music
                             }
                             .frame(height: rightTileH)
 
                             BentoTile(
-                                title: tileLabel("Drinks"),
+                                title: tileLabel(Strings.tabDrinks),
                                 imageURL: appContentViewModel.drinksImageURL,
                                 titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.drinks))
+                                activeTab = .drinks
                             }
                             .frame(height: rightTileH)
 
                             BentoTile(
-                                title: tileLabel("Food"),
+                                title: tileLabel(Strings.tabFood),
                                 imageURL: appContentViewModel.foodImageURL,
                                 titleFont: tileFont
                             ) {
-                                path.append(HomeDestination.mainTabs(.food))
+                                activeTab = .food
                             }
                             .frame(height: rightTileH)
                         }
@@ -168,7 +169,7 @@ struct HomeView: View {
                     } label: {
                         profileButtonLabel
                     }
-                    .accessibilityLabel("View profile")
+                    .accessibilityLabel(Strings.homeViewProfile)
 
                     Spacer()
 
@@ -180,7 +181,7 @@ struct HomeView: View {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(MomentsStyle.background)
-                                Text("LIVE MOMENT")
+                                Text(Strings.homeLiveMoment)
                                     .font(.system(size: 10, weight: .medium))
                                     .tracking(1)
                                     .foregroundColor(MomentsStyle.background)
@@ -190,7 +191,7 @@ struct HomeView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                         }
-                        .accessibilityLabel("View active moment")
+                        .accessibilityLabel(Strings.homeViewActiveMoment)
 
                         Spacer()
                     }
@@ -205,7 +206,7 @@ struct HomeView: View {
                             .background(MomentsStyle.surfaceSecondary)
                             .clipShape(Circle())
                     }
-                    .accessibilityLabel("Settings")
+                    .accessibilityLabel(Strings.homeSettings)
                 }
                 .padding(.horizontal, spacing + 15)
                 .padding(.top, 8)
@@ -215,7 +216,6 @@ struct HomeView: View {
             .navigationBarHidden(true)
             .navigationDestination(for: HomeDestination.self) { destination in
                 switch destination {
-                case .mainTabs(let initialTab): MainTabView(initialTab: initialTab)
                 case .profile: ProfileView()
                 case .settings: SettingsView()
                 case .createMoment: CreateMomentView()
@@ -225,6 +225,9 @@ struct HomeView: View {
         }
         .fullScreenCover(isPresented: $showProfile) {
             ProfileCoverView()
+        }
+        .fullScreenCover(item: $activeTab) { tab in
+            MainTabView(initialTab: tab)
         }
         .sheet(isPresented: $showLiveMoment) {
             NavigationStack {
@@ -357,12 +360,14 @@ private struct BentoTile: View {
         .environment(AppContentViewModel())
         .environment(UserViewModel())
         .environment(MomentPlannerViewModel())
+        .environment(AppLanguage.shared)
 }
 #Preview("Option A – Helvetica Bold All Caps") {
     HomeView(headerFontStyle: .helveticaBold)
         .environment(AppContentViewModel())
         .environment(UserViewModel())
         .environment(MomentPlannerViewModel())
+        .environment(AppLanguage.shared)
 }
 
 #Preview("Option B – Space Grotesk All Caps") {
@@ -370,5 +375,6 @@ private struct BentoTile: View {
         .environment(AppContentViewModel())
         .environment(UserViewModel())
         .environment(MomentPlannerViewModel())
+        .environment(AppLanguage.shared)
 }
 

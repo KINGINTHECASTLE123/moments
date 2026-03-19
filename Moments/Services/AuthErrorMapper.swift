@@ -4,30 +4,30 @@ enum AuthErrorMapper {
     static func message(for error: Error) -> String {
         let nsError = error as NSError
         guard nsError.domain == AuthErrorDomain else {
-            return "Something went wrong. Please try again."
+            return Strings.authErrorGeneric
         }
 
         switch AuthErrorCode(rawValue: nsError.code) {
         case .invalidEmail:
-            return "That email address doesn't look right."
+            return Strings.authErrorInvalidEmail
         case .wrongPassword, .invalidCredential:
-            return "Incorrect email or password."
+            return Strings.authErrorWrongPassword
         case .userNotFound:
-            return "No account found with that email."
+            return Strings.authErrorUserNotFound
         case .emailAlreadyInUse:
-            return "An account with that email already exists."
+            return Strings.authErrorEmailInUse
         case .weakPassword:
-            return "Password is too short — use at least 6 characters."
+            return Strings.authErrorWeakPassword
         case .networkError:
-            return "No internet connection. Check your network and try again."
+            return Strings.authErrorNetworkError
         case .tooManyRequests:
-            return "Too many attempts. Wait a moment and try again."
+            return Strings.authErrorTooManyRequests
         case .userDisabled:
-            return "This account has been disabled."
+            return Strings.authErrorUserDisabled
         case .requiresRecentLogin:
-            return "For security, please sign in again before making this change."
+            return Strings.authErrorRequiresRecentLogin
         default:
-            return "Something went wrong. Please try again."
+            return Strings.authErrorGeneric
         }
     }
 }

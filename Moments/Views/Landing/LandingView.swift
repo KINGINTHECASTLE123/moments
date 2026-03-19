@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LandingView: View {
     @Environment(AppContentViewModel.self) private var appContentViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var showContent = false
     var onCreateAccount: () -> Void = {}
     var onSignIn: () -> Void = {}
@@ -64,7 +65,7 @@ struct LandingView: View {
                 VStack(spacing: 14) {
                     // Create profile
                     Button(action: onCreateAccount) {
-                        Text("CREATE PROFILE")
+                        Text(Strings.landingCreateProfile)
                             .font(.system(size: 12, weight: .regular))
                             .tracking(3)
                             .foregroundColor(Color(red: 0.1, green: 0.094, blue: 0.078)) // always dark text
@@ -79,7 +80,7 @@ struct LandingView: View {
 
                     // Sign in
                     Button(action: onSignIn) {
-                        Text("SIGN IN")
+                        Text(Strings.landingSignIn)
                             .font(.system(size: 12, weight: .regular))
                             .tracking(3)
                             .foregroundColor(.white)

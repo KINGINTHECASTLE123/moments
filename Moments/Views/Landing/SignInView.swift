@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @Environment(AuthViewModel.self) private var authViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var email = ""
     @State private var password = ""
     @FocusState private var focusedField: Field?
@@ -16,11 +17,11 @@ struct SignInView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Welcome back")
+                        Text(Strings.signInWelcomeBack)
                             .font(MomentsStyle.georgiaItalic(34))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text("Sign in to your account")
+                        Text(Strings.signInSubtitle)
                             .font(MomentsStyle.systemLight(14))
                             .foregroundColor(MomentsStyle.secondaryText)
                     }
@@ -30,16 +31,16 @@ struct SignInView: View {
                     // Form fields
                     VStack(spacing: 24) {
                         AuthTextField(
-                            label: "EMAIL",
-                            placeholder: "your@email.com",
+                            label: Strings.signInEmailLabel,
+                            placeholder: Strings.signInEmailPlaceholder,
                             text: $email,
                             keyboardType: .emailAddress
                         )
                         .focused($focusedField, equals: .email)
 
                         AuthSecureField(
-                            label: "PASSWORD",
-                            placeholder: "Enter your password",
+                            label: Strings.signInPasswordLabel,
+                            placeholder: Strings.signInPasswordPlaceholder,
                             text: $password
                         )
                         .focused($focusedField, equals: .password)
@@ -59,7 +60,7 @@ struct SignInView: View {
                         NavigationLink {
                             ForgotPasswordView()
                         } label: {
-                            Text("FORGOT PASSWORD?")
+                            Text(Strings.signInForgotPassword)
                                 .font(.system(size: 9, weight: .light))
                                 .tracking(2)
                                 .foregroundColor(MomentsStyle.secondaryText)
@@ -90,7 +91,7 @@ struct SignInView: View {
                             .background(MomentsStyle.primaryText)
                             .clipShape(Capsule())
                     } else {
-                        Text("SIGN IN")
+                        Text(Strings.signInButton)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.background)

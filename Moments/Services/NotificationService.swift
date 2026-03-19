@@ -38,13 +38,7 @@ final class NotificationService {
 
         guard authorizationStatus == .authorized else { return }
 
-        let messages = [
-            "What made you smile today? Capture the moment.",
-            "A small moment is still worth remembering.",
-            "Take a breath. What stands out right now?",
-            "Your day has a story — save a piece of it.",
-            "Don't let this one slip by. Share a moment."
-        ]
+        let messages = Strings.notificationMessages
 
         // Schedule a daily reminder at 19:00
         var dateComponents = DateComponents()
@@ -54,7 +48,7 @@ final class NotificationService {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
 
         let content = UNMutableNotificationContent()
-        content.title = "moments"
+        content.title = Strings.notificationTitle
         content.body = messages.randomElement() ?? messages[0]
         content.sound = .default
 

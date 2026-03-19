@@ -22,6 +22,7 @@ final class MusicViewModel {
         spotifyService.onDisconnected = { [weak self] _ in
             Task { @MainActor in
                 self?.isConnected = false
+                self?.currentPlayerState = nil
                 self?.stopProgressTimer()
             }
         }
@@ -36,9 +37,12 @@ final class MusicViewModel {
                 }
             }
         }
-        spotifyService.onAuthorizationFailed = { [weak self] message in
+        spotifyService.onAuthorizationFailed = { [weak self] _ in
             Task { @MainActor in
-                self?.errorMessage = message
+                // Token was invalid — clear state so the connect prompt shows cleanly.
+                self?.isConnected = false
+                self?.currentPlayerState = nil
+                self?.stopProgressTimer()
             }
         }
     }

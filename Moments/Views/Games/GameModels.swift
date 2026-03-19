@@ -1,15 +1,26 @@
 import Foundation
 
 struct Game: Identifiable, Hashable {
-    let id = UUID()
+    // Stable identity keyed on game number — never generates a new UUID
+    // on each access, so ForEach and NavigationLink remain stable.
+    var id: Int { number }
     let number: Int
-    let name: String
-    let description: String
-    let tag: String
-    let rules: [String]
     let promptCount: Int
     let icon: String
     let emoji: String
+
+    // Localized display properties — route through GameStrings so the
+    // language toggle updates the UI immediately without rebuilding data.
+    var name: String { GameStrings.name(for: number) }
+    var description: String { GameStrings.description(for: number) }
+    var tag: String { GameStrings.tag(for: number) }
+    var rules: [String] { GameStrings.rules(for: number) }
+
+    // Convenience aliases kept for call sites that already use the localized names.
+    var localizedName: String { name }
+    var localizedDescription: String { description }
+    var localizedTag: String { tag }
+    var localizedRules: [String] { rules }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(number)
@@ -38,96 +49,23 @@ struct GamePlayDestination: Hashable {
 }
 
 // MARK: - Game Data
+//
+// Computed vars (not `let` constants) so that name/description/tag/rules
+// are re-evaluated from GameStrings on every access. This means the
+// language toggle immediately updates every view that reads these arrays
+// without any additional state management.
 
-let lightGames: [Game] = [
-    Game(
-        number: 1,
-        name: "Would You Rather",
-        description: "Classic dilemmas that spark debate",
-        tag: "Icebreaker",
-        rules: [
-            "One person reads the two options aloud.",
-            "Everyone picks a side — no skipping!",
-            "Debate your choices before moving on."
-        ],
-        promptCount: 40,
-        icon: "arrow.left.arrow.right",
-        emoji: "🤔"
-    ),
-    Game(
-        number: 2,
-        name: "Heads Up",
-        description: "Guess the word on your forehead",
-        tag: "Party",
-        rules: [
-            "Hold the phone on your forehead so others can see the word.",
-            "Your friends describe it without saying the word.",
-            "Guess correctly and tap next!"
-        ],
-        promptCount: 40,
-        icon: "hand.raised",
-        emoji: "🙆"
-    ),
-    Game(
-        number: 3,
-        name: "Charades",
-        description: "Act it out, no words allowed",
-        tag: "Classic",
-        rules: [
-            "One person acts out the prompt silently.",
-            "No talking, no mouthing words, no pointing at objects.",
-            "The group tries to guess what it is."
-        ],
-        promptCount: 40,
-        icon: "theatermasks",
-        emoji: "🎭"
-    ),
-]
+var lightGames: [Game] {[
+    Game(number: 1, promptCount: 40, icon: "arrow.left.arrow.right", emoji: "🤔"),
+    Game(number: 2, promptCount: 40, icon: "hand.raised",            emoji: "🙆"),
+    Game(number: 3, promptCount: 40, icon: "theatermasks",           emoji: "🎭"),
+]}
 
-let deepGames: [Game] = [
-    Game(
-        number: 4,
-        name: "Late Night Conversations",
-        description: "Questions that go deeper",
-        tag: "Intimate",
-        rules: [
-            "Read the question aloud to the group.",
-            "Everyone takes a turn answering honestly.",
-            "No judgement — just listen and share."
-        ],
-        promptCount: 40,
-        icon: "moon.stars",
-        emoji: "🌙"
-    ),
-    Game(
-        number: 5,
-        name: "Flirty & Fun",
-        description: "Playful prompts for bold moments",
-        tag: "Bold",
-        rules: [
-            "Read the prompt aloud.",
-            "Answer honestly or complete the dare.",
-            "Keep it playful — the bolder the better."
-        ],
-        promptCount: 40,
-        icon: "heart",
-        emoji: "💋"
-    ),
-    Game(
-        number: 6,
-        name: "High Stakes",
-        description: "Dares and challenges with consequences",
-        tag: "Daring",
-        rules: [
-            "Read the dare aloud.",
-            "You must complete it or face a group-chosen penalty.",
-            "No backing down — that's the whole point."
-        ],
-        promptCount: 40,
-        icon: "flame",
-        emoji: "🔥"
-    ),
-]
+var deepGames: [Game] {[
+    Game(number: 4, promptCount: 40, icon: "moon.stars", emoji: "🌙"),
+    Game(number: 5, promptCount: 40, icon: "heart",      emoji: "💋"),
+    Game(number: 6, promptCount: 40, icon: "flame",      emoji: "🔥"),
+]}
 
 // MARK: - Prompt Data
 

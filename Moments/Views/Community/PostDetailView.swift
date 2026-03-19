@@ -5,6 +5,7 @@ struct PostDetailView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
     @Environment(CommunityViewModel.self) private var communityViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     let post: FirestorePost
     @State private var commentText = ""
     @State private var showDeleteConfirmation = false
@@ -94,7 +95,7 @@ struct PostDetailView: View {
                             Button {
                                 isCommentFocused = true
                             } label: {
-                                Text("REPLY")
+                                Text(Strings.postDetailReply)
                                     .font(.system(size: 9, weight: .light))
                                     .tracking(2)
                                     .foregroundColor(MomentsStyle.secondaryText)
@@ -110,7 +111,7 @@ struct PostDetailView: View {
                         .frame(height: 0.5)
                         .foregroundColor(MomentsStyle.border)
 
-                    Text("COMMENTS")
+                    Text(Strings.postDetailComments)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.secondaryText)
@@ -152,7 +153,7 @@ struct PostDetailView: View {
                         size: 30
                     )
 
-                    TextField("Add a comment...", text: $commentText)
+                    TextField(Strings.postDetailAddComment, text: $commentText)
                         .font(MomentsStyle.systemLight(14))
                         .focused($isCommentFocused)
 
@@ -217,9 +218,9 @@ struct PostDetailView: View {
         .onDisappear {
             communityViewModel.stopCommentsListener()
         }
-        .alert("Delete Post", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert(Strings.communityDeletePost, isPresented: $showDeleteConfirmation) {
+            Button(Strings.communityCancel, role: .cancel) { }
+            Button(Strings.communityDelete, role: .destructive) {
                 guard let postID = latestPost.id else { return }
                 Haptics.warning()
                 Task {
@@ -230,7 +231,7 @@ struct PostDetailView: View {
                 }
             }
         } message: {
-            Text("This post will be permanently deleted.")
+            Text(Strings.communityDeletePostConfirmation)
         }
     }
 }
@@ -300,7 +301,7 @@ struct CommentRow: View {
                         await communityViewModel.deleteComment(postID: postID, commentID: commentID)
                     }
                 } label: {
-                    Label("Delete Comment", systemImage: "trash")
+                    Label(Strings.postDetailDeleteComment, systemImage: "trash")
                 }
             }
         }
@@ -326,5 +327,6 @@ struct CommentRow: View {
         .environment(AuthViewModel())
         .environment(UserViewModel())
         .environment(CommunityViewModel())
+        .environment(AppLanguage.shared)
     }
 }

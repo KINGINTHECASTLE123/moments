@@ -5,6 +5,7 @@ struct AnimatedLikeButton: View {
     let count: Int
     let action: () -> Void
 
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var heartScale: CGFloat = 1.0
     @State private var particles: [LikeParticle] = []
 
@@ -53,7 +54,7 @@ struct AnimatedLikeButton: View {
             .foregroundColor(isLiked ? MomentsStyle.primaryText : MomentsStyle.secondaryText)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isLiked ? "Unlike, \(count) likes" : "Like, \(count) likes")
+        .accessibilityLabel(isLiked ? Strings.likeButtonLiked(count) : Strings.likeButtonNotLiked(count))
         .accessibilityAddTraits(.isButton)
     }
 

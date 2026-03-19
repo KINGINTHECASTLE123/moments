@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
+    @Environment(AppLanguage.self) private var appLanguage
 
     private var profile: UserProfile? {
         userViewModel.currentUser
@@ -42,7 +43,7 @@ struct ProfileView: View {
                     NavigationLink {
                         EditProfileView()
                     } label: {
-                        Text("EDIT PROFILE")
+                        Text(Strings.profileEditProfile)
                             .font(.system(size: 9, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.primaryText)
@@ -65,9 +66,9 @@ struct ProfileView: View {
                     .foregroundColor(MomentsStyle.border)
 
                 HStack(spacing: 0) {
-                    ProfileStat(value: "\(profile?.momentsCount ?? 0)", label: "Moments")
-                    ProfileStat(value: "\(profile?.friendsCount ?? 0)", label: "Friends")
-                    ProfileStat(value: "\(profile?.likesCount ?? 0)", label: "Likes")
+                    ProfileStat(value: "\(profile?.momentsCount ?? 0)", label: Strings.profileMoments)
+                    ProfileStat(value: "\(profile?.friendsCount ?? 0)", label: Strings.profileFriends)
+                    ProfileStat(value: "\(profile?.likesCount ?? 0)", label: Strings.profileLikes)
                 }
                 .padding(.vertical, 20)
 
@@ -77,7 +78,7 @@ struct ProfileView: View {
 
                 // Interests section
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("INTERESTS")
+                    Text(Strings.profileInterests)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.secondaryText)
@@ -87,6 +88,7 @@ struct ProfileView: View {
                             PillTag(label: interest)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
@@ -99,12 +101,12 @@ struct ProfileView: View {
                 // Favorites section
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 8) {
-                        Text("FAVORITES")
+                        Text(Strings.profileFavorites)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.secondaryText)
 
-                        Text("COMING SOON")
+                        Text(Strings.profileComingSoon)
                             .font(.system(size: 7, weight: .light))
                             .tracking(2)
                             .foregroundColor(MomentsStyle.inactive)
@@ -133,12 +135,12 @@ struct ProfileView: View {
                 // Recent moments
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 8) {
-                        Text("RECENT MOMENTS")
+                        Text(Strings.profileRecentMoments)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                             .foregroundColor(MomentsStyle.secondaryText)
 
-                        Text("COMING SOON")
+                        Text(Strings.profileComingSoon)
                             .font(.system(size: 7, weight: .light))
                             .tracking(2)
                             .foregroundColor(MomentsStyle.inactive)
@@ -203,7 +205,7 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Profile")
+                Text(Strings.profileTitle)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
@@ -212,9 +214,9 @@ struct ProfileView: View {
 
     private var memberSinceText: String {
         guard let createdAt = profile?.createdAt else {
-            return "Member since Moments"
+            return "\(Strings.profileMemberSince) Moments"
         }
-        return "Member since \(createdAt.formatted(.dateTime.year()))"
+        return "\(Strings.profileMemberSince) \(createdAt.formatted(.dateTime.year()))"
     }
 }
 
@@ -302,7 +304,7 @@ struct MomentCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "person.2")
                             .font(.system(size: 11, weight: .light))
-                        Text("\(attendees) people")
+                        Text("\(attendees) \(Strings.profilePeople)")
                             .font(MomentsStyle.systemLight(11))
                     }
                     .foregroundColor(MomentsStyle.secondaryText)
@@ -361,7 +363,9 @@ struct FlowLayout: Layout {
 #Preview {
     NavigationStack {
         ProfileView()
+            .environment(AuthViewModel())
             .environment(UserViewModel())
+            .environment(AppLanguage.shared)
     }
 }
 

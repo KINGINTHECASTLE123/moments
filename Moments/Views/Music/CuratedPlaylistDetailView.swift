@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CuratedPlaylistDetailView: View {
     @Environment(MusicViewModel.self) private var musicViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     let playlist: CuratedPlaylist
 
     var body: some View {
@@ -53,7 +54,7 @@ struct CuratedPlaylistDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.right")
                                 .font(.system(size: 10, weight: .light))
-                            Text("VIEW IN SPOTIFY")
+                            Text(Strings.musicViewInSpotify)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(2)
                         }
@@ -89,7 +90,7 @@ struct CuratedPlaylistDetailView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "play.fill")
                         .font(.system(size: 10))
-                    Text(musicViewModel.isConnected ? "PLAY" : "CONNECT TO PLAY")
+                    Text(musicViewModel.isConnected ? Strings.musicPlay : Strings.musicConnectToPlayButton)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                 }
@@ -108,7 +109,7 @@ struct CuratedPlaylistDetailView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "shuffle")
                             .font(.system(size: 10))
-                        Text("SHUFFLE")
+                        Text(Strings.musicShuffle)
                             .font(.system(size: 10, weight: .light))
                             .tracking(3)
                     }
@@ -128,7 +129,7 @@ struct CuratedPlaylistDetailView: View {
 
     private func nowPlayingSection(state: SpotifyPlayerState) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("NOW PLAYING")
+            Text(Strings.musicNowPlaying)
                 .font(.system(size: 10, weight: .light))
                 .tracking(3)
                 .foregroundColor(MomentsStyle.secondaryText)

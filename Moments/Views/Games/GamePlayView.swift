@@ -6,21 +6,14 @@ struct GamePlayView: View {
     @State private var prompts: [GamePrompt] = []
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppLanguage.self) private var appLanguage
 
     private var isLastCard: Bool {
         currentIndex >= prompts.count - 1
     }
 
     private var instructionText: String {
-        switch game.number {
-        case 1: "Read both options aloud. Everyone picks a side."
-        case 2: "Hold phone to your forehead. Friends describe the word."
-        case 3: "Act it out. No talking, no pointing."
-        case 4: "Read aloud. Everyone takes a turn answering."
-        case 5: "Read the prompt. Be bold."
-        case 6: "Complete the dare — or face the penalty."
-        default: ""
-        }
+        GameStrings.instruction(for: game.number)
     }
 
     var body: some View {
@@ -29,7 +22,7 @@ struct GamePlayView: View {
             HStack(spacing: 0) {
                 Text("\(currentIndex + 1)")
                     .contentTransition(.numericText())
-                Text(" of \(prompts.count)")
+                Text(" \(Strings.gamesOf) \(prompts.count)")
             }
             .font(MomentsStyle.systemLight(13))
             .foregroundColor(MomentsStyle.secondaryText)
@@ -51,7 +44,7 @@ struct GamePlayView: View {
                     if prompt.optionA != nil {
                         WouldYouRatherCard(prompt: prompt)
                     } else {
-                        StandardPromptCard(prompt: prompt, gameName: game.name)
+                        StandardPromptCard(prompt: prompt, gameName: game.localizedName)
                     }
                 }
             }
@@ -78,7 +71,7 @@ struct GamePlayView: View {
                         dismiss()
                     }
                 } label: {
-                    Text(isLastCard ? "FINISH" : "NEXT")
+                    Text(isLastCard ? Strings.gamesFinish : Strings.gamesNext)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.background)
@@ -91,7 +84,7 @@ struct GamePlayView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("END GAME")
+                    Text(Strings.gamesEndGame)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
                         .foregroundColor(MomentsStyle.secondaryText)
@@ -118,13 +111,13 @@ struct GamePlayView: View {
                 }
             }
             ToolbarItem(placement: .principal) {
-                Text(game.name)
+                Text(game.localizedName)
                     .font(MomentsStyle.georgiaItalic(18))
                     .foregroundColor(MomentsStyle.primaryText)
             }
         }
         .onAppear {
-            prompts = (gamePrompts[game.number] ?? []).shuffled()
+            prompts = GameStrings.prompts(for: game.number).shuffled()
         }
     }
 }
@@ -169,6 +162,7 @@ private struct StandardPromptCard: View {
 
 private struct WouldYouRatherCard: View {
     let prompt: GamePrompt
+    @Environment(AppLanguage.self) private var appLanguage
 
     var body: some View {
         VStack(spacing: 10) {
@@ -187,7 +181,7 @@ private struct WouldYouRatherCard: View {
                 .frame(maxWidth: .infinity, minHeight: 120)
             }
 
-            Text("or")
+            Text(Strings.gamesOr)
                 .font(MomentsStyle.georgiaItalic(14))
                 .foregroundColor(MomentsStyle.secondaryText)
 

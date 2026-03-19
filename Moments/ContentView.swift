@@ -49,12 +49,15 @@ struct ContentView: View {
                 case .signedIn(let uid):
                     HomeView()
                         .task(id: uid) {
-                            // Fetch user profile and preload all content images in parallel
+                            // Fetch user profile and preload all content images in parallel,
+                            // while enforcing a minimum splash duration for a smoother experience
+                            async let minimumDelay: Void = Task.sleep(nanoseconds: 2_500_000_000)
                             await withTaskGroup(of: Void.self) { group in
                                 group.addTask { await userViewModel.fetchCurrentUser(uid: uid) }
                                 group.addTask { await foodViewModel.fetchDishes() }
                                 group.addTask { await drinksViewModel.fetchDrinks() }
                             }
+                            _ = try? await minimumDelay
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 isAppReady = true
                             }

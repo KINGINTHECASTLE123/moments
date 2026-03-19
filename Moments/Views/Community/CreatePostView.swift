@@ -6,6 +6,7 @@ struct CreatePostView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(UserViewModel.self) private var userViewModel
     @Environment(CommunityViewModel.self) private var communityViewModel
+    @Environment(AppLanguage.self) private var appLanguage
     @State private var bodyText = ""
     @State private var selectedTag: String?
     @State private var selectedPhoto: PhotosPickerItem?
@@ -35,13 +36,13 @@ struct CreatePostView: View {
                                     .font(MomentsStyle.systemMedium(15))
                                     .foregroundColor(MomentsStyle.primaryText)
 
-                                Text("Posting to Community")
+                                Text(Strings.createPostTitle)
                                     .font(MomentsStyle.systemLight(12))
                                     .foregroundColor(MomentsStyle.secondaryText)
                             }
                         }
 
-                        TextField("Share a moment...", text: $bodyText, axis: .vertical)
+                        TextField(Strings.createPostPlaceholder, text: $bodyText, axis: .vertical)
                             .font(MomentsStyle.systemLight(16))
                             .foregroundColor(MomentsStyle.primaryText)
                             .lineLimit(3...12)
@@ -69,7 +70,7 @@ struct CreatePostView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("TAG")
+                            Text(Strings.createPostTag)
                                 .font(.system(size: 9, weight: .light))
                                 .tracking(2)
                                 .foregroundColor(MomentsStyle.secondaryText)
@@ -119,7 +120,7 @@ struct CreatePostView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(Strings.createPostCancel) {
                         dismiss()
                     }
                     .font(MomentsStyle.systemLight(15))
@@ -128,7 +129,7 @@ struct CreatePostView: View {
                 }
 
                 ToolbarItem(placement: .principal) {
-                    Text("New Post")
+                    Text(Strings.createPostNavigationTitle)
                         .font(MomentsStyle.georgiaItalic(18))
                         .foregroundColor(MomentsStyle.primaryText)
                 }
@@ -159,7 +160,7 @@ struct CreatePostView: View {
                             ProgressView()
                                 .controlSize(.small)
                         } else {
-                            Text("POST")
+                            Text(Strings.createPostPost)
                                 .font(.system(size: 11, weight: .medium))
                                 .tracking(2)
                                 .foregroundColor(canPost ? MomentsStyle.primaryText : MomentsStyle.inactive)
@@ -189,4 +190,5 @@ struct CreatePostView: View {
         .environment(AuthViewModel())
         .environment(UserViewModel())
         .environment(CommunityViewModel())
+        .environment(AppLanguage.shared)
 }

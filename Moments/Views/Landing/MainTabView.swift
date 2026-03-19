@@ -1,15 +1,16 @@
 import SwiftUI
 
-enum MomentsTab: Int, CaseIterable {
+enum MomentsTab: Int, CaseIterable, Identifiable {
+    var id: Int { rawValue }
     case games, food, drinks, music, community
 
     var title: String {
         switch self {
-        case .games: "Games"
-        case .food: "Food"
-        case .drinks: "Drinks"
-        case .music: "Music"
-        case .community: "Community"
+        case .games: Strings.tabGames
+        case .food: Strings.tabFood
+        case .drinks: Strings.tabDrinks
+        case .music: Strings.tabMusic
+        case .community: Strings.tabCommunity
         }
     }
 
@@ -25,6 +26,8 @@ enum MomentsTab: Int, CaseIterable {
 }
 
 struct MainTabView: View {
+    @Environment(AppLanguage.self) private var appLanguage
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: MomentsTab = .games
 
     init(initialTab: MomentsTab = .games) {
@@ -34,11 +37,16 @@ struct MainTabView: View {
     var body: some View {
         Group {
             switch selectedTab {
-            case .games: GamesView()
-            case .food: FoodView()
-            case .drinks: DrinksView()
-            case .music: CuratedMusicView()
-            case .community: CommunityView()
+            case .games:
+                NavigationStack { GamesView() }
+            case .food:
+                NavigationStack { FoodView() }
+            case .drinks:
+                NavigationStack { DrinksView() }
+            case .music:
+                NavigationStack { CuratedMusicView() }
+            case .community:
+                NavigationStack { CommunityView() }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -71,6 +79,7 @@ struct MainTabView: View {
                         }
                     }
                 }
+                .padding(.horizontal, 8)
                 .padding(.top, 10)
                 .padding(.bottom, 8)
             }
@@ -80,7 +89,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    NavigationStack {
-        MainTabView()
-    }
+    MainTabView()
 }

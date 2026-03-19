@@ -3,13 +3,15 @@ import SwiftUI
 struct CommunityView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(CommunityViewModel.self) private var communityViewModel
+    @Environment(AppLanguage.self) private var appLanguage
+    @Environment(\.dismiss) private var dismiss
     @State private var showCreatePost = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    SectionHeader("Community", subtitle: "What's happening around you")
+                    SectionHeader(Strings.communityTitle, subtitle: Strings.communitySubtitle)
 
                     Spacer()
 
@@ -25,7 +27,7 @@ struct CommunityView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 24)
+                .padding(.top, 8)
                 .padding(.bottom, 24)
 
                 if let errorMessage = communityViewModel.errorMessage, communityViewModel.posts.isEmpty {
@@ -34,7 +36,7 @@ struct CommunityView: View {
                             .font(.system(size: 36, weight: .light))
                             .foregroundColor(MomentsStyle.inactive)
 
-                        Text("Couldn't load posts")
+                        Text(Strings.communityCouldntLoad)
                             .font(MomentsStyle.systemMedium(16))
                             .foregroundColor(MomentsStyle.primaryText)
 
@@ -47,7 +49,7 @@ struct CommunityView: View {
                             guard case .signedIn(let uid) = authViewModel.authState else { return }
                             Task { await communityViewModel.fetchPosts(currentUID: uid) }
                         } label: {
-                            Text("TRY AGAIN")
+                            Text(Strings.communityTryAgain)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.primaryText)
@@ -70,17 +72,17 @@ struct CommunityView: View {
                             .font(.system(size: 40, weight: .light))
                             .foregroundColor(MomentsStyle.inactive)
 
-                        Text("No posts yet")
+                        Text(Strings.communityEmptyTitle)
                             .font(MomentsStyle.georgiaItalic(22))
                             .foregroundColor(MomentsStyle.primaryText)
 
-                        Text("Be the first to share something with the community")
+                        Text(Strings.communityEmptySubtitle)
                             .font(MomentsStyle.systemLight(14))
                             .foregroundColor(MomentsStyle.secondaryText)
                             .multilineTextAlignment(.center)
 
                         Button { showCreatePost = true } label: {
-                            Text("CREATE POST")
+                            Text(Strings.communityCreatePost)
                                 .font(.system(size: 10, weight: .light))
                                 .tracking(3)
                                 .foregroundColor(MomentsStyle.background)
@@ -111,6 +113,18 @@ struct CommunityView: View {
             }
         }
         .background(MomentsStyle.background)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MomentsStyle.primaryText)
+                }
+                .accessibilityLabel(Strings.tabHome)
+            }
+        }
         .refreshable {
             Haptics.cardSettle()
             guard case .signedIn(let uid) = authViewModel.authState else { return }
@@ -181,7 +195,7 @@ struct PostCard: View {
 
                     if canDelete, let postID = post.id {
                         Menu {
-                            Button("Delete Post", role: .destructive) {
+                            Button(Strings.communityDeletePost, role: .destructive) {
                                 showDeleteConfirmation = true
                             }
                         } label: {
@@ -234,9 +248,9 @@ struct PostCard: View {
                 }
             }
         }
-        .alert("Delete Post", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert(Strings.communityDeletePost, isPresented: $showDeleteConfirmation) {
+            Button(Strings.communityCancel, role: .cancel) { }
+            Button(Strings.communityDelete, role: .destructive) {
                 guard let postID = post.id else { return }
                 Haptics.warning()
                 Task {
@@ -244,7 +258,7 @@ struct PostCard: View {
                 }
             }
         } message: {
-            Text("This post will be permanently deleted.")
+            Text(Strings.communityDeletePostConfirmation)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(post.authorUsername) posted: \(post.body). \(post.likes) likes, \(post.commentCount) comments")
@@ -287,5 +301,6 @@ extension Date {
             .environment(AuthViewModel())
             .environment(UserViewModel())
             .environment(CommunityViewModel())
+            .environment(AppLanguage.shared)
     }
 }
