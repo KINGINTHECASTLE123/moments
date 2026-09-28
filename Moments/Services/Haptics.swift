@@ -17,4 +17,5 @@ enum Haptics {
     static func warning() { guard isEnabled else { return }; notification.notificationOccurred(.warning) }
     static func select() { guard isEnabled else { return }; selection.selectionChanged() }
     static func playerJoined() { guard isEnabled else { return }; impactLight.impactOccurred() }
+    static func timerEnd() { guard isEnabled else { return }; notification.notificationOccurred(.error) }
 }

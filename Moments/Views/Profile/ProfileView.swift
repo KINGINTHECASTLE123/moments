@@ -119,9 +119,7 @@ struct ProfileView: View {
                     }
 
                     if topDishName == nil && topGameName == nil && topPlaylistName == nil {
-                        Text(Strings.profileNoFavoritesSubtitle)
-                            .font(MomentsStyle.systemLight(14))
-                            .foregroundColor(MomentsStyle.secondaryText)
+                        ProfileEmptyStateText(Strings.profileNoFavoritesSubtitle)
                     } else {
                         VStack(spacing: 10) {
                             if let name = topPlaylistName {
@@ -169,12 +167,13 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                     } else if momentPlannerViewModel.recentMoments.isEmpty {
-                        Text(Strings.profileNoMomentsYet)
-                            .font(MomentsStyle.systemLight(14))
-                            .foregroundColor(MomentsStyle.secondaryText)
-                        Text(Strings.profileNoMomentsSubtitle)
-                            .font(MomentsStyle.systemLight(13))
-                            .foregroundColor(MomentsStyle.secondaryText)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(Strings.profileNoMomentsYet)
+                                .font(MomentsStyle.georgiaItalic(16))
+                                .foregroundColor(MomentsStyle.secondaryText.opacity(0.78))
+
+                            ProfileEmptyStateText(Strings.profileNoMomentsSubtitle)
+                        }
                     } else {
                         VStack(spacing: 12) {
                             ForEach(momentPlannerViewModel.recentMoments) { moment in
@@ -282,6 +281,22 @@ struct ProfileFavoriteRow: View {
                 Spacer()
             }
         }
+    }
+}
+
+private struct ProfileEmptyStateText: View {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        Text(text)
+            .font(MomentsStyle.systemLight(13))
+            .foregroundColor(MomentsStyle.secondaryText.opacity(0.78))
+            .italic()
+            .lineSpacing(3)
     }
 }
 

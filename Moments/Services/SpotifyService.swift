@@ -24,6 +24,9 @@ final class SpotifyService: NSObject {
     /// Action to execute once the App Remote re-establishes a connection.
     private var pendingPlaybackAction: (() -> Void)?
 
+    /// URI to pass to Spotify if we need to foreground the app to recover playback.
+    private var pendingLaunchURI: String?
+
     /// Whether we have already attempted a session renewal for this connection cycle,
     /// to avoid an infinite renewal loop.
     private var hasAttemptedRenewal = false
@@ -50,18 +53,18 @@ final class SpotifyService: NSObject {
 
     func authorize() -> String? {
         #if targetEnvironment(simulator)
-        return "Spotify App Remote skal testes på en fysisk iPhone eller iPad, ikke i simulatoren."
+        return Strings.spotifySimulatorError
         #else
         guard !Self.clientID.isEmpty else {
-            return "Spotify client ID is missing from the app configuration."
+            return Strings.spotifyClientIDMissing
         }
 
         guard let spotifyURL = URL(string: "spotify://") else {
-            return "Kunne ikke oprette Spotify URL."
+            return Strings.spotifyURLError
         }
 
         guard UIApplication.shared.canOpenURL(spotifyURL) else {
-            return "Spotify-appen er ikke installeret eller kan ikke åbnes på denne enhed."
+            return Strings.spotifyNotInstalled
         }
 
         let requestedScopes: SPTScope = [
@@ -82,7 +85,7 @@ final class SpotifyService: NSObject {
         let parameters = appRemote.authorizationParameters(from: url)
 
         if let errorDesc = parameters?[SPTAppRemoteErrorDescriptionKey] {
-            return "Spotify auth error: \(errorDesc)"
+            return Strings.spotifyAuthError(errorDesc)
         }
 
         return nil
@@ -123,39 +126,45 @@ final class SpotifyService: NSObject {
     // MARK: - Playback Controls
 
     func play(uri: String) {
-        performWhenConnected { [weak self] in
+        queuePlaybackCommand(launchURI: uri) { [weak self] in
             self?.appRemote.playerAPI?.play(uri, callback: self?.defaultCallback)
         }
     }
 
     func pause() {
-        performWhenConnected { [weak self] in
+        queuePlaybackCommand { [weak self] in
             self?.appRemote.playerAPI?.pause(self?.defaultCallback)
         }
     }
 
     func resume() {
-        performWhenConnected { [weak self] in
+        queuePlaybackCommand { [weak self] in
             self?.appRemote.playerAPI?.resume(self?.defaultCallback)
         }
     }
 
     func skipNext() {
-        performWhenConnected { [weak self] in
+        queuePlaybackCommand { [weak self] in
             self?.appRemote.playerAPI?.skip(toNext: self?.defaultCallback)
         }
     }
 
     func skipPrevious() {
-        performWhenConnected { [weak self] in
+        queuePlaybackCommand { [weak self] in
             self?.appRemote.playerAPI?.skip(toPrevious: self?.defaultCallback)
         }
+    }
+
+    private func queuePlaybackCommand(launchURI: String = "", action: @escaping () -> Void) {
+        pendingLaunchURI = launchURI
+        pendingPlaybackAction = action
+        performWhenConnected(action)
     }
 
     /// Runs `action` immediately if the App Remote is connected, otherwise
     /// stores it and triggers a reconnect so it fires once the connection is ready.
     private func performWhenConnected(_ action: @escaping () -> Void) {
-        if appRemote.isConnected {
+        if appRemote.isConnected, appRemote.playerAPI != nil {
             action()
         } else {
             pendingPlaybackAction = action
@@ -180,10 +189,25 @@ final class SpotifyService: NSObject {
         { [weak self] _, error in
             if let error {
                 Log.spotify.error("Playback error: \(error.localizedDescription, privacy: .private)")
+                self?.recoverPlaybackCommand(after: error)
             } else {
+                self?.pendingPlaybackAction = nil
+                self?.pendingLaunchURI = nil
                 // Re-fetch player state after every command so the UI stays in sync.
                 self?.getPlayerState()
             }
+        }
+    }
+
+    private func recoverPlaybackCommand(after error: Error) {
+        guard accessToken != nil, pendingPlaybackAction != nil else { return }
+
+        let errorCode = (error as NSError).code
+        if errorCode == -2000 || errorCode == -2001 {
+            if appRemote.isConnected {
+                appRemote.disconnect()
+            }
+            appRemote.connect()
         }
     }
 
@@ -295,6 +319,8 @@ extension SpotifyService: SPTAppRemoteDelegate {
                 action()
             }
 
+            pendingLaunchURI = nil
+
             onConnected?()
         }
     }
@@ -304,6 +330,7 @@ extension SpotifyService: SPTAppRemoteDelegate {
             guard let self else { return }
             isConnected = false
             pendingPlaybackAction = nil
+            pendingLaunchURI = nil
 
             // Code -2001 is "End of stream" — Spotify's TCP connection timed out
             // because the Spotify app went to background. Silently reconnect.
@@ -331,13 +358,12 @@ extension SpotifyService: SPTAppRemoteDelegate {
 
             // Code -2000 (connection refused / stream error) means Spotify is not
             // running in the background. If there is a pending playback action,
-            // escalate to authorizeAndPlayURI("") which brings Spotify to the
-            // foreground and re-establishes the connection without changing the
-            // currently playing track (empty URI = resume current).
+            // escalate to authorizeAndPlayURI using the requested playback target.
             let isConnectionRefused = (error as NSError?)?.code == -2000
             if isConnectionRefused, accessToken != nil, pendingPlaybackAction != nil {
                 Log.spotify.debug("Silent reconnect failed — escalating to authorizeAndPlayURI")
-                _ = await self.appRemote.authorizeAndPlayURI("")
+                let launchURI = self.pendingLaunchURI ?? ""
+                _ = await self.appRemote.authorizeAndPlayURI(launchURI)
                 return
             }
 
@@ -404,5 +430,3 @@ extension SpotifyService: SPTAppRemotePlayerStateDelegate {
         }
     }
 }
-
-

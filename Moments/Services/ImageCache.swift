@@ -33,8 +33,12 @@ actor ImageCache {
             return cached
         }
 
-        // 2. Disk
-        if let diskImage = loadFromDisk(key: key) {
+        // 2. Disk (off-actor so the blocking read doesn't hold up other cache operations)
+        let path = diskPath(for: key)
+        if let diskImage = await Task.detached(priority: .utility, operation: {
+            guard let data = try? Data(contentsOf: path) else { return nil as UIImage? }
+            return UIImage(data: data)
+        }).value {
             let cost = diskImage.cgImage.map { $0.bytesPerRow * $0.height } ?? 0
             memoryCache.setObject(diskImage, forKey: key as NSString, cost: cost)
             return diskImage
@@ -102,11 +106,8 @@ actor ImageCache {
         diskCacheURL.appendingPathComponent(key)
     }
 
-    private func loadFromDisk(key: String) -> UIImage? {
-        let path = diskPath(for: key)
-        guard let data = try? Data(contentsOf: path) else { return nil }
-        return UIImage(data: data)
-    }
+    // loadImageFromDisk is a free function so it can be called from Task.detached
+    // without capturing the actor.
 
     private func store(_ image: UIImage, forKey key: String) {
         let cost = image.cgImage.map { $0.bytesPerRow * $0.height } ?? 0
@@ -147,3 +148,5 @@ actor ImageCache {
         return digest.prefix(16).map { String(format: "%02x", $0) }.joined()
     }
 }
+
+

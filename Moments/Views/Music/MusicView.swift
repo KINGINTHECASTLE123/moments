@@ -112,7 +112,7 @@ struct SpotifyBadge: View {
             Circle()
                 .fill(isConnected ? Color(red: 0.12, green: 0.84, blue: 0.38) : MomentsStyle.inactive)
                 .frame(width: 8, height: 8)
-            Text("Spotify")
+            Text(Strings.spotifyBadgeLabel)
                 .font(.system(size: 10, weight: .light))
                 .foregroundColor(MomentsStyle.secondaryText)
         }

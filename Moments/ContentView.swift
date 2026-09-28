@@ -95,11 +95,22 @@ struct ContentView: View {
 private struct AppSplashView: View {
     @Environment(AppContentViewModel.self) private var appContentViewModel
     @State private var showWordmark = false
+    @State private var heroImageReady = false
 
     var body: some View {
         ZStack {
-            // Hero image background (fades in when loaded, dark gradient fallback)
-            RemoteStorageImageView(urlString: appContentViewModel.landingHeroImageURL) {
+            // Keep the splash fully black until the hero image is available.
+            RemoteStorageImageView(
+                urlString: appContentViewModel.landingHeroImageURL,
+                onImageLoaded: { isLoaded in
+                    heroImageReady = isLoaded
+                    if isLoaded {
+                        showWordmark = true
+                    } else {
+                        showWordmark = false
+                    }
+                }
+            ) {
                 Color.black
             }
             .aspectRatio(contentMode: .fill)
@@ -113,11 +124,10 @@ private struct AppSplashView: View {
             Text("moments")
                 .font(MomentsStyle.georgiaItalic(62))
                 .foregroundColor(.white)
-                .opacity(showWordmark ? 1 : 0)
-                .offset(y: showWordmark ? 0 : 16)
-                .animation(.easeOut(duration: 1.2).delay(0.2), value: showWordmark)
+                .opacity(showWordmark && heroImageReady ? 1 : 0)
+                .offset(y: showWordmark && heroImageReady ? 0 : 16)
+                .animation(.easeOut(duration: 0.8), value: showWordmark && heroImageReady)
         }
-        .onAppear { showWordmark = true }
     }
 }
 

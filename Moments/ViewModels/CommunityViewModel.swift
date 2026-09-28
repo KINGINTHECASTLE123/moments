@@ -7,6 +7,7 @@ final class CommunityViewModel {
 
     var posts: [FirestorePost] = []
     var liveComments: [FirestoreComment] = []
+    var resolvedCommentCounts: [String: Int] = [:]
     var isLoading = false
     var isCreatingPost = false
     var deletingPostIDs: Set<String> = []
@@ -17,6 +18,7 @@ final class CommunityViewModel {
     private var commentsListenerTask: Task<Void, Never>?
     private var currentUID: String?
     private var pendingLikeMutations: Set<String> = []
+    private var pendingCommentLikeMutations: Set<String> = []
     private var pendingDeletions: Set<String> = []
 
     init(
@@ -30,11 +32,41 @@ final class CommunityViewModel {
     private func setError(_ message: String) {
         errorMessage = message
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(5))
-            if self.errorMessage == message {
-                self.errorMessage = nil
-            }
+            try? await Task.sleep(for: .seconds(4))
+            if errorMessage == message { errorMessage = nil }
         }
+    }
+
+    private func resolveCommentCounts(for posts: [FirestorePost]) async -> [String: Int] {
+        await withTaskGroup(of: (String, Int)?.self, returning: [String: Int].self) { group in
+            for post in posts {
+                guard let postID = post.id else { continue }
+                group.addTask { [postService] in
+                    do {
+                        let count = try await postService.fetchCommentCount(postID: postID)
+                        return (postID, count)
+                    } catch {
+                        return nil
+                    }
+                }
+            }
+
+            var countsByPostID: [String: Int] = [:]
+            for await result in group {
+                guard let result else { continue }
+                countsByPostID[result.0] = result.1
+            }
+            return countsByPostID
+        }
+    }
+
+    private func applyResolvedCommentCounts(_ countsByPostID: [String: Int], to posts: [FirestorePost]) -> [FirestorePost] {
+        var resolved = posts
+        for index in resolved.indices {
+            guard let postID = resolved[index].id, let count = countsByPostID[postID] else { continue }
+            resolved[index].commentCount = count
+        }
+        return resolved
     }
 
     func fetchPosts(currentUID: String) async {
@@ -44,7 +76,9 @@ final class CommunityViewModel {
             for i in fetched.indices {
                 fetched[i].isLiked = fetched[i].likedByUIDs.contains(currentUID)
             }
-            posts = fetched
+            let resolvedCounts = await resolveCommentCounts(for: fetched)
+            resolvedCommentCounts = resolvedCounts
+            posts = applyResolvedCommentCounts(resolvedCounts, to: fetched)
         } catch {
             setError(error.localizedDescription)
         }
@@ -72,7 +106,9 @@ final class CommunityViewModel {
                         enriched[i].likes = existing.likes
                     }
                 }
-                self.posts = enriched
+                let resolvedCounts = await self.resolveCommentCounts(for: enriched)
+                self.resolvedCommentCounts = resolvedCounts
+                self.posts = self.applyResolvedCommentCounts(resolvedCounts, to: enriched)
                 self.isLoading = false
             }
         }
@@ -91,7 +127,22 @@ final class CommunityViewModel {
         commentsListenerTask = Task {
             for await comments in postService.commentsStream(postID: postID) {
                 guard !Task.isCancelled else { break }
-                self.liveComments = comments
+                var enriched = comments
+                let currentUID = self.currentUID
+                for index in enriched.indices {
+                    enriched[index].isLiked = currentUID.map { enriched[index].likedByUIDs.contains($0) } ?? false
+                    if let commentID = enriched[index].id,
+                       pendingCommentLikeMutations.contains(commentID),
+                       let existing = self.liveComments.first(where: { $0.id == commentID }) {
+                        enriched[index].isLiked = existing.isLiked
+                        enriched[index].likes = existing.likes
+                    }
+                }
+                self.liveComments = enriched
+                if let postIndex = self.posts.firstIndex(where: { $0.id == postID }) {
+                    self.posts[postIndex].commentCount = enriched.count
+                }
+                self.resolvedCommentCounts[postID] = enriched.count
             }
         }
     }
@@ -162,29 +213,67 @@ final class CommunityViewModel {
 
     func fetchComments(postID: String) async -> [FirestoreComment] {
         do {
-            return try await postService.fetchComments(postID: postID)
+            var comments = try await postService.fetchComments(postID: postID)
+            if let currentUID {
+                for index in comments.indices {
+                    comments[index].isLiked = comments[index].likedByUIDs.contains(currentUID)
+                }
+            }
+            return comments
         } catch {
             setError(error.localizedDescription)
             return []
         }
     }
 
-    func addComment(postID: String, authorUID: String, authorUsername: String, body: String) async {
+    func addComment(
+        postID: String,
+        authorUID: String,
+        authorUsername: String,
+        authorProfileImageURL: String?,
+        body: String
+    ) async {
+        errorMessage = nil
         let comment = FirestoreComment(
             authorUID: authorUID,
             authorUsername: authorUsername,
+            authorProfileImageURL: authorProfileImageURL,
             body: body,
             likes: 0,
+            likedByUIDs: [],
             createdAt: Date()
         )
         do {
             try await postService.addComment(postID: postID, comment: comment)
-            if let index = posts.firstIndex(where: { $0.id == postID }) {
-                posts[index].commentCount += 1
-            }
         } catch {
             setError(error.localizedDescription)
         }
+    }
+
+    func toggleCommentLike(postID: String, commentID: String, uid: String) async {
+        guard let index = liveComments.firstIndex(where: { $0.id == commentID }) else { return }
+        let isLiked = liveComments[index].isLiked
+
+        liveComments[index].isLiked.toggle()
+        liveComments[index].likes += liveComments[index].isLiked ? 1 : -1
+        pendingCommentLikeMutations.insert(commentID)
+
+        do {
+            try await postService.toggleCommentLike(
+                postID: postID,
+                commentID: commentID,
+                uid: uid,
+                isCurrentlyLiked: isLiked
+            )
+        } catch {
+            if let revertIndex = liveComments.firstIndex(where: { $0.id == commentID }) {
+                liveComments[revertIndex].isLiked.toggle()
+                liveComments[revertIndex].likes += liveComments[revertIndex].isLiked ? 1 : -1
+            }
+            setError(error.localizedDescription)
+        }
+
+        pendingCommentLikeMutations.remove(commentID)
     }
 
     func deleteComment(postID: String, commentID: String) async {
@@ -197,9 +286,6 @@ final class CommunityViewModel {
 
         do {
             try await postService.deleteComment(postID: postID, commentID: commentID)
-            if let index = posts.firstIndex(where: { $0.id == postID }) {
-                posts[index].commentCount = max(0, posts[index].commentCount - 1)
-            }
         } catch {
             // Revert optimistic removal
             if let removed {

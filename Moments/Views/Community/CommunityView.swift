@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CommunityView: View {
+    private let bottomContentInset: CGFloat = 96
+
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(CommunityViewModel.self) private var communityViewModel
     @Environment(AppLanguage.self) private var appLanguage
@@ -110,12 +112,14 @@ struct CommunityView: View {
                     .padding(.horizontal, 24)
                 }
 
-                Spacer(minLength: 32)
+                Spacer(minLength: bottomContentInset)
             }
             }
             .background(MomentsStyle.background)
             .navigationDestination(item: $selectedPost) { post in
-                PostDetailView(post: post)
+                if let postID = post.id {
+                    PostDetailView(postID: postID, post: post)
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
@@ -182,6 +186,11 @@ struct PostCard: View {
         }
 
         return nil
+    }
+
+    private var displayedCommentCount: Int {
+        guard let postID = post.id else { return post.commentCount }
+        return communityViewModel.resolvedCommentCounts[postID] ?? post.commentCount
     }
 
     var body: some View {
@@ -259,7 +268,7 @@ struct PostCard: View {
                     HStack(spacing: 5) {
                         Image(systemName: "bubble.right")
                             .font(.system(size: 13, weight: .light))
-                        Text("\(post.commentCount)")
+                        Text("\(displayedCommentCount)")
                             .font(MomentsStyle.systemLight(12))
                     }
                     .foregroundColor(MomentsStyle.secondaryText)
@@ -297,7 +306,7 @@ struct PostCard: View {
             Text(Strings.communityReportPostConfirmation)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(post.authorUsername) posted: \(post.body). \(post.likes) likes, \(post.commentCount) comments")
+        .accessibilityLabel("\(post.authorUsername) posted: \(post.body). \(post.likes) likes, \(displayedCommentCount) comments")
     }
 
     private func sendReport(reason: String) {
@@ -340,11 +349,34 @@ extension Date {
 }
 
 #Preview {
+    let authViewModel = AuthViewModel()
+    let userViewModel = UserViewModel()
+    let communityViewModel: CommunityViewModel = {
+        let viewModel = CommunityViewModel()
+        viewModel.posts = [
+            FirestorePost(
+                id: "preview-post",
+                authorUID: "1",
+                authorUsername: "peterhansen",
+                authorProfileImageURL: nil,
+                body: "Loved the burrata dish, paired really well with the spritz.",
+                imageURL: nil,
+                tag: nil,
+                likes: 0,
+                likedByUIDs: [],
+                commentCount: 1,
+                createdAt: .now
+            )
+        ]
+        viewModel.resolvedCommentCounts = ["preview-post": 0]
+        return viewModel
+    }()
+
     NavigationStack {
         CommunityView()
-            .environment(AuthViewModel())
-            .environment(UserViewModel())
-            .environment(CommunityViewModel())
+            .environment(authViewModel)
+            .environment(userViewModel)
+            .environment(communityViewModel)
             .environment(AppLanguage.shared)
     }
 }

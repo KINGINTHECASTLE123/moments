@@ -25,16 +25,19 @@ struct RemoteStorageImageView<Placeholder: View>: View {
     let urlString: String?
     let contentMode: ContentMode
     let placeholder: Placeholder
+    let onImageLoaded: ((Bool) -> Void)?
 
     @State private var uiImage: UIImage?
 
     init(
         urlString: String?,
         contentMode: ContentMode = .fill,
+        onImageLoaded: ((Bool) -> Void)? = nil,
         @ViewBuilder placeholder: () -> Placeholder
     ) {
         self.urlString = urlString
         self.contentMode = contentMode
+        self.onImageLoaded = onImageLoaded
         self.placeholder = placeholder()
     }
 
@@ -56,6 +59,7 @@ struct RemoteStorageImageView<Placeholder: View>: View {
     @MainActor
     private func loadImage() async {
         uiImage = nil
+        onImageLoaded?(false)
 
         guard let urlString, !urlString.isEmpty else {
             return
@@ -65,9 +69,11 @@ struct RemoteStorageImageView<Placeholder: View>: View {
         let looksLikeURL = urlString.contains("://") || urlString.hasPrefix("http")
         if !looksLikeURL {
             uiImage = UIImage(named: urlString)
+            onImageLoaded?(uiImage != nil)
             return
         }
 
         uiImage = await ImageCache.shared.image(for: urlString)
+        onImageLoaded?(uiImage != nil)
     }
 }

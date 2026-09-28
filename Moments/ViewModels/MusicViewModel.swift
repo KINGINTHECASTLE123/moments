@@ -6,6 +6,7 @@ final class MusicViewModel {
     private let spotifyService = SpotifyService()
     private var progressTimer: Timer?
     private var lastStateReceivedAt: Date?
+    private var ignoreStateUpdatesUntil: Date?
 
     var isConnected = false
     var currentPlayerState: SpotifyPlayerState?
@@ -28,6 +29,11 @@ final class MusicViewModel {
         }
         spotifyService.onPlayerStateChanged = { [weak self] state in
             Task { @MainActor in
+                // Suppress state updates that arrive within the debounce window
+                // after an optimistic toggle, to prevent the button from reverting.
+                if let until = self?.ignoreStateUpdatesUntil, Date() < until {
+                    return
+                }
                 self?.currentPlayerState = state
                 self?.lastStateReceivedAt = Date()
                 if state.isPaused {
@@ -51,12 +57,15 @@ final class MusicViewModel {
 
     private func startProgressTimer() {
         stopProgressTimer()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor [weak self] in
                 self?.tickProgress()
             }
         }
+        // .common mode fires during scroll tracking, preventing progress drift
+        RunLoop.main.add(timer, forMode: .common)
+        progressTimer = timer
     }
 
     private func stopProgressTimer() {
@@ -126,6 +135,9 @@ final class MusicViewModel {
         state.isPaused.toggle()
         currentPlayerState = state
         lastStateReceivedAt = Date()
+        // Debounce incoming Spotify state for 500ms so the optimistic toggle
+        // isn't immediately overwritten by the echo from the SDK.
+        ignoreStateUpdatesUntil = Date().addingTimeInterval(0.5)
         if state.isPaused {
             stopProgressTimer()
             pause()
@@ -148,28 +160,32 @@ final class MusicViewModel {
     func fetchPlaylistCovers() async {
         guard let token = spotifyService.accessToken else { return }
 
-        for playlist in CuratedPlaylists.all {
-            guard playlistCovers[playlist.id] == nil else { continue }
+        let playlistsToFetch = CuratedPlaylists.all.filter { playlistCovers[$0.id] == nil }
+        guard !playlistsToFetch.isEmpty else { return }
 
-            let playlistID = playlist.id
-            guard let url = URL(string: "https://api.spotify.com/v1/playlists/\(playlistID)?fields=images") else { continue }
+        await withTaskGroup(of: (String, String?).self) { group in
+            for playlist in playlistsToFetch {
+                let playlistID = playlist.id
+                group.addTask {
+                    guard let url = URL(string: "https://api.spotify.com/v1/playlists/\(playlistID)?fields=images") else {
+                        return (playlistID, nil)
+                    }
+                    var request = URLRequest(url: url)
+                    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-            var request = URLRequest(url: url)
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-            do {
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard let httpResponse = response as? HTTPURLResponse,
-                      httpResponse.statusCode == 200 else { continue }
-
-                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let images = json["images"] as? [[String: Any]],
-                   let firstImage = images.first,
-                   let imageURL = firstImage["url"] as? String {
-                    playlistCovers[playlistID] = imageURL
+                    guard let (data, response) = try? await URLSession.shared.data(for: request),
+                          (response as? HTTPURLResponse)?.statusCode == 200,
+                          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                          let images = json["images"] as? [[String: Any]],
+                          let imageURL = images.first?["url"] as? String else {
+                        return (playlistID, nil)
+                    }
+                    return (playlistID, imageURL)
                 }
-            } catch {
-                continue
+            }
+
+            for await (id, url) in group {
+                if let url { playlistCovers[id] = url }
             }
         }
     }

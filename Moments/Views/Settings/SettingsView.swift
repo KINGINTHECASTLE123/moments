@@ -136,34 +136,73 @@ struct SettingsView: View {
                 Button {
                     showSignOutConfirm = true
                 } label: {
-                    Text(Strings.settingsSignOut)
-                        .font(.system(size: 10, weight: .light))
-                        .tracking(3)
-                        .foregroundColor(MomentsStyle.secondaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .overlay(
-                            Capsule()
-                                .stroke(MomentsStyle.border, lineWidth: 0.5)
-                        )
+                    HStack(spacing: 8) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 12, weight: .regular))
+
+                        Text(Strings.settingsSignOut)
+                            .font(.system(size: 10, weight: .light))
+                            .tracking(3)
+                    }
+                    .foregroundColor(.red.opacity(0.78))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(MomentsStyle.cardBackground)
+                    .overlay(
+                        Capsule()
+                            .stroke(MomentsStyle.border, lineWidth: 0.5)
+                    )
+                    .clipShape(Capsule())
                 }
+                .buttonStyle(MomentsSecondaryButtonStyle())
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
 
-                // Delete account
-                Button {
-                    deletePassword = ""
-                    showDeleteConfirm = true
-                } label: {
-                    Text(Strings.settingsDeleteAccount)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(Strings.settingsDangerZone)
                         .font(.system(size: 10, weight: .light))
                         .tracking(3)
-                        .foregroundColor(Color.red.opacity(0.6))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
+                        .foregroundColor(MomentsStyle.secondaryText)
+
+                    Button {
+                        deletePassword = ""
+                        showDeleteConfirm = true
+                    } label: {
+                        HairlineCard {
+                            HStack(spacing: 14) {
+                                Circle()
+                                    .fill(MomentsStyle.surfaceSecondary)
+                                    .frame(width: 38, height: 38)
+                                    .overlay(
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(MomentsStyle.primaryText)
+                                    )
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(Strings.settingsDeleteAccount)
+                                        .font(MomentsStyle.systemMedium(14))
+                                        .foregroundColor(MomentsStyle.primaryText)
+
+                                    Text(Strings.settingsDeleteAccountSubtitle)
+                                        .font(MomentsStyle.systemLight(12))
+                                        .foregroundColor(MomentsStyle.secondaryText)
+                                        .lineSpacing(2)
+                                }
+
+                                Spacer(minLength: 12)
+
+                                Text(Strings.settingsDeleteForever.uppercased())
+                                    .font(.system(size: 8, weight: .light))
+                                    .tracking(2)
+                                    .foregroundColor(MomentsStyle.secondaryText)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 8)
+                .padding(.top, 24)
 
                 // Footer
                 VStack(spacing: 6) {

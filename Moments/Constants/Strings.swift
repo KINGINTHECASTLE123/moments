@@ -100,6 +100,14 @@ enum Strings {
     static var gamesPrompts: String { lang == .english ? "prompts" : "kort" }
     static var gamesOf: String { lang == .english ? "of" : "af" }
     static var gamesOr: String { lang == .english ? "or" : "eller" }
+    static var gamesCompletionTitle: String { lang == .english ? "Well played." : "Godt spillet." }
+    static func gamesCompletionSubtitle(_ count: Int) -> String {
+        lang == .english
+            ? "You made it through all \(count) prompts."
+            : "I kom igennem alle \(count) kort."
+    }
+    static var gamesPlayAgain: String { lang == .english ? "PLAY AGAIN" : "SPIL IGEN" }
+    static var gamesBackToGames: String { lang == .english ? "BACK TO GAMES" : "TILBAGE TIL SPIL" }
 
     // Game play instructions (indexed to match GameType order)
     static var gameInstructionWouldYouRather: String { lang == .english ? "Read both options aloud. Everyone picks a side." : "Læs begge muligheder højt. Alle vælger side." }
@@ -312,6 +320,12 @@ enum Strings {
     // Actions
     static var settingsSignOut: String { lang == .english ? "SIGN OUT" : "LOG UD" }
     static var settingsDeleteAccount: String { lang == .english ? "DELETE ACCOUNT" : "SLET KONTO" }
+    static var settingsDangerZone: String { lang == .english ? "DANGER ZONE" : "KRITISK OMRÅDE" }
+    static var settingsDeleteAccountSubtitle: String {
+        lang == .english
+            ? "Permanently remove your profile, posts, and saved data."
+            : "Fjern permanent din profil, dine opslag og gemte data."
+    }
 
     // Sign out alert
     static var settingsSignOutAlertTitle: String { lang == .english ? "Sign Out" : "Log ud" }
@@ -480,6 +494,7 @@ enum Strings {
     static var connectedAccountsTitle: String { lang == .english ? "Connected Accounts" : "Tilknyttede konti" }
     static var connectedAccountsSubtitle: String { lang == .english ? "Manage linked services." : "Administrer tilknyttede tjenester." }
     static var connectedAccountsSpotify: String { "Spotify" }
+    static var spotifyBadgeLabel: String { "Spotify" }
     static var connectedAccountsConnected: String { lang == .english ? "Connected" : "Tilsluttet" }
     static var connectedAccountsNotConnected: String { lang == .english ? "Not connected" : "Ikke tilsluttet" }
     static var connectedAccountsDisconnect: String { lang == .english ? "DISCONNECT" : "AFBRYD" }
@@ -565,5 +580,33 @@ enum Strings {
     static var authErrorTooManyRequests: String { lang == .english ? "Too many attempts. Wait a moment and try again." : "For mange forsøg. Vent et øjeblik og prøv igen." }
     static var authErrorUserDisabled: String { lang == .english ? "This account has been disabled." : "Denne konto er blevet deaktiveret." }
     static var authErrorRequiresRecentLogin: String { lang == .english ? "For security, please sign in again before making this change." : "Af sikkerhedsmæssige årsager skal du logge ind igen, før du foretager denne ændring." }
+
+    // MARK: - Spotify Errors
+
+    static var spotifySimulatorError: String {
+        lang == .english
+            ? "Spotify App Remote must be tested on a physical iPhone or iPad, not in the simulator."
+            : "Spotify App Remote skal testes på en fysisk iPhone eller iPad, ikke i simulatoren."
+    }
+    static var spotifyClientIDMissing: String {
+        lang == .english
+            ? "Spotify client ID is missing from the app configuration."
+            : "Spotify-klient-ID mangler i app-konfigurationen."
+    }
+    static var spotifyURLError: String {
+        lang == .english
+            ? "Could not create Spotify URL."
+            : "Kunne ikke oprette Spotify URL."
+    }
+    static var spotifyNotInstalled: String {
+        lang == .english
+            ? "The Spotify app is not installed or cannot be opened on this device."
+            : "Spotify-appen er ikke installeret eller kan ikke åbnes på denne enhed."
+    }
+    static func spotifyAuthError(_ description: String) -> String {
+        lang == .english
+            ? "Spotify auth error: \(description)"
+            : "Spotify godkendelsesfejl: \(description)"
+    }
 
 }

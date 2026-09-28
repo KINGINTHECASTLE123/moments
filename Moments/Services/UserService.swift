@@ -43,13 +43,17 @@ final class UserService: UserServiceProtocol {
         for doc in postsSnapshot.documents {
             let postID = doc.documentID
 
-            // Delete comments subcollection
+            // Batch-delete all comments + the post document in one round-trip
             let commentsSnapshot = try await doc.reference
                 .collection("comments")
                 .getDocuments()
+
+            let batch = db.batch()
             for commentDoc in commentsSnapshot.documents {
-                try await commentDoc.reference.delete()
+                batch.deleteDocument(commentDoc.reference)
             }
+            batch.deleteDocument(doc.reference)
+            try await batch.commit()
 
             // Delete post image from Storage if it exists
             if let imageURL = doc.data()["imageURL"] as? String, !imageURL.isEmpty {
@@ -57,9 +61,6 @@ final class UserService: UserServiceProtocol {
                     .child("postImages/\(uid)_\(postID).jpg")
                 try? await imageRef.delete()
             }
-
-            // Delete the post document
-            try await doc.reference.delete()
         }
 
         // 2. Delete profile image from Storage

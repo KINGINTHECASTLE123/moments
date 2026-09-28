@@ -8,6 +8,8 @@ struct Game: Identifiable, Hashable {
     let promptCount: Int
     let icon: String
     let emoji: String
+    let hasTimer: Bool
+    let timerSeconds: Int
 
     // Localized display properties — route through GameStrings so the
     // language toggle updates the UI immediately without rebuilding data.
@@ -56,22 +58,27 @@ struct GamePlayDestination: Hashable {
 // without any additional state management.
 
 var lightGames: [Game] {[
-    Game(number: 1, promptCount: 40, icon: "arrow.left.arrow.right", emoji: "🤔"),
-    Game(number: 2, promptCount: 40, icon: "hand.raised",            emoji: "🙆"),
-    Game(number: 3, promptCount: 40, icon: "theatermasks",           emoji: "🎭"),
+    Game(number: 1, promptCount: 40, icon: "arrow.left.arrow.right", emoji: "🤔", hasTimer: false, timerSeconds: 0),
+    Game(number: 2, promptCount: 40, icon: "hand.raised",            emoji: "🙆", hasTimer: false, timerSeconds: 0),
+    Game(number: 3, promptCount: 40, icon: "theatermasks",           emoji: "🎭", hasTimer: true,  timerSeconds: 60),
 ]}
 
 var deepGames: [Game] {[
-    Game(number: 4, promptCount: 40, icon: "moon.stars", emoji: "🌙"),
-    Game(number: 5, promptCount: 40, icon: "heart",      emoji: "💋"),
-    Game(number: 6, promptCount: 40, icon: "flame",      emoji: "🔥"),
+    Game(number: 4, promptCount: 40, icon: "moon.stars", emoji: "🌙", hasTimer: false, timerSeconds: 0),
+    Game(number: 5, promptCount: 40, icon: "heart",      emoji: "💋", hasTimer: false, timerSeconds: 0),
+    Game(number: 6, promptCount: 40, icon: "flame",      emoji: "🔥", hasTimer: false, timerSeconds: 0),
 ]}
 
 // MARK: - Prompt Data
 
-let gamePrompts: [Int: [GamePrompt]] = [
+// Builds and returns only the prompts for the requested game number.
+// Previously a global `let` dictionary that allocated all ~240 GamePrompts
+// (each with a UUID()) at app startup — wasted memory, since GamePlayView
+// immediately shuffles a copy and discards the originals.
+func makeGamePrompts(for number: Int) -> [GamePrompt] {
+    switch number {
     // Would You Rather
-    1: [
+    case 1: return [
         GamePrompt(text: "Would you rather...", optionA: "Always say everything on your mind", optionB: "Never speak again"),
         GamePrompt(text: "Would you rather...", optionA: "Have dinner with your future self", optionB: "Have dinner with your 10-year-old self"),
         GamePrompt(text: "Would you rather...", optionA: "Be able to fly", optionB: "Be able to read minds"),
@@ -112,10 +119,9 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "Would you rather...", optionA: "Be the best player on a losing team", optionB: "Be the worst player on a winning team"),
         GamePrompt(text: "Would you rather...", optionA: "Live in a mansion with no one", optionB: "Live in a studio flat with your favourite people"),
         GamePrompt(text: "Would you rather...", optionA: "Experience everything twice", optionB: "Experience nothing the same way ever again"),
-    ],
-
+    ]
     // Heads Up
-    2: [
+    case 2: return [
         GamePrompt(text: "Taylor Swift"),
         GamePrompt(text: "The Eiffel Tower"),
         GamePrompt(text: "Yoga"),
@@ -156,10 +162,9 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "Zendaya"),
         GamePrompt(text: "A wine tasting"),
         GamePrompt(text: "Poker night"),
-    ],
-
+    ]
     // Charades
-    3: [
+    case 3: return [
         GamePrompt(text: "Walking a tightrope"),
         GamePrompt(text: "Making a pizza"),
         GamePrompt(text: "A cat stuck in a tree"),
@@ -200,10 +205,9 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "Someone getting a massage"),
         GamePrompt(text: "Running on a treadmill that's too fast"),
         GamePrompt(text: "A waiter carrying too many plates"),
-    ],
-
+    ]
     // Late Night Conversations
-    4: [
+    case 4: return [
         GamePrompt(text: "What's a belief you held strongly five years ago that you've since changed?"),
         GamePrompt(text: "What would you do differently if nobody was watching?"),
         GamePrompt(text: "When was the last time you felt truly at peace?"),
@@ -244,10 +248,9 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "What's a conversation that changed the way you see the world?"),
         GamePrompt(text: "What do you think your life is really about?"),
         GamePrompt(text: "What's the difference between who you are and who you show people?"),
-    ],
-
+    ]
     // Flirty & Fun
-    5: [
+    case 5: return [
         GamePrompt(text: "What's the most attractive quality in a person?"),
         GamePrompt(text: "Describe your ideal date night in three words."),
         GamePrompt(text: "What's your love language?"),
@@ -288,10 +291,9 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "What's a date you went on that started badly but ended perfectly?"),
         GamePrompt(text: "Text someone in your phone a genuine compliment right now."),
         GamePrompt(text: "What's the sexiest accent in the world?"),
-    ],
-
+    ]
     // High Stakes
-    6: [
+    case 6: return [
         GamePrompt(text: "Let the group go through your last 5 photos."),
         GamePrompt(text: "Text the third person in your contacts 'I miss you'."),
         GamePrompt(text: "Do your best impression of someone in the room."),
@@ -332,5 +334,7 @@ let gamePrompts: [Int: [GamePrompt]] = [
         GamePrompt(text: "Show the group your Spotify Wrapped top artist."),
         GamePrompt(text: "Let someone go through your 'Following' list and ask about anyone they choose."),
         GamePrompt(text: "Call the last person you texted and sing them Happy Birthday."),
-    ],
-]
+    ]
+    default: return []
+    }
+}

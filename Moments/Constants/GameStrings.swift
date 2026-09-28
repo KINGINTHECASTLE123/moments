@@ -226,23 +226,24 @@ enum GameStrings {
     // MARK: - Prompts
     //
     // Returns English or Danish prompts depending on the current language.
-    // English source lives in gamePrompts (GameModels.swift).
-    // Danish source lives in danishGamePrompts below.
+    // English source: makeGamePrompts(for:) in GameModels.swift (built on demand).
+    // Danish source: makeDanishGamePrompts(for:) below (built on demand).
 
     static func prompts(for number: Int) -> [GamePrompt] {
         if lang == .danish {
-            return danishGamePrompts[number] ?? []
+            return makeDanishGamePrompts(for: number)
         }
-        return gamePrompts[number] ?? []
+        return makeGamePrompts(for: number)
     }
 
     // MARK: - Danish Prompts
 
     // swiftlint:disable line_length
-    private static let danishGamePrompts: [Int: [GamePrompt]] = [
+    private static func makeDanishGamePrompts(for number: Int) -> [GamePrompt] {
+        switch number {
 
         // Ville du hellere (Would You Rather)
-        1: [
+        case 1: return [
             GamePrompt(text: "Ville du hellere...", optionA: "Altid sige alt, hvad du tænker", optionB: "Aldrig tale igen"),
             GamePrompt(text: "Ville du hellere...", optionA: "Have middag med dit fremtidige jeg", optionB: "Have middag med dit 10-årige jeg"),
             GamePrompt(text: "Ville du hellere...", optionA: "Kunne flyve", optionB: "Kunne læse tanker"),
@@ -283,10 +284,9 @@ enum GameStrings {
             GamePrompt(text: "Ville du hellere...", optionA: "Være den bedste spiller på et tabende hold", optionB: "Være den dårligste spiller på et vindende hold"),
             GamePrompt(text: "Ville du hellere...", optionA: "Bo i en stor villa alene", optionB: "Bo i en lille lejlighed med dine yndlingsmennesker"),
             GamePrompt(text: "Ville du hellere...", optionA: "Opleve alt to gange", optionB: "Aldrig opleve noget på samme måde igen"),
-        ],
-
+        ]
         // Gæt ordet (Heads Up)
-        2: [
+        case 2: return [
             GamePrompt(text: "Taylor Swift"),
             GamePrompt(text: "Eiffeltårnet"),
             GamePrompt(text: "Yoga"),
@@ -327,10 +327,9 @@ enum GameStrings {
             GamePrompt(text: "Zendaya"),
             GamePrompt(text: "En vinsmagning"),
             GamePrompt(text: "Pokeraften"),
-        ],
-
+        ]
         // Gæt & grimasser (Charades)
-        3: [
+        case 3: return [
             GamePrompt(text: "Gå på line"),
             GamePrompt(text: "Lave en pizza"),
             GamePrompt(text: "En kat sidder fast i et træ"),
@@ -371,10 +370,9 @@ enum GameStrings {
             GamePrompt(text: "En person der får massage"),
             GamePrompt(text: "Løbe på et løbebånd der går for hurtigt"),
             GamePrompt(text: "En tjener der bærer for mange tallerkener"),
-        ],
-
+        ]
         // Dybe samtaler (Late Night Conversations)
-        4: [
+        case 4: return [
             GamePrompt(text: "Hvad er en overbevisning, du holdt stærkt for fem år siden, som du siden har ændret?"),
             GamePrompt(text: "Hvad ville du gøre anderledes, hvis ingen kiggede?"),
             GamePrompt(text: "Hvornår var du sidst virkelig i fred med dig selv?"),
@@ -415,10 +413,9 @@ enum GameStrings {
             GamePrompt(text: "Hvad er en samtale, der ændrede den måde, du ser verden på?"),
             GamePrompt(text: "Hvad tror du, dit liv egentlig handler om?"),
             GamePrompt(text: "Hvad er forskellen på, hvem du er, og hvem du viser folk?"),
-        ],
-
+        ]
         // Flirt & Sjov (Flirty & Fun)
-        5: [
+        case 5: return [
             GamePrompt(text: "Hvad er den mest tiltrækkende egenskab hos et menneske?"),
             GamePrompt(text: "Beskriv din ideelle date-aften med tre ord."),
             GamePrompt(text: "Hvad er dit kærlighedssprog?"),
@@ -459,10 +456,9 @@ enum GameStrings {
             GamePrompt(text: "Hvad er en date, du var på, der startede dårligt men sluttede perfekt?"),
             GamePrompt(text: "Send en ægte kompliment til én i din telefonbog lige nu."),
             GamePrompt(text: "Hvad er den mest sexy accent i verden?"),
-        ],
-
+        ]
         // Udfordringer (High Stakes)
-        6: [
+        case 6: return [
             GamePrompt(text: "Lad gruppen gennemgå dine sidste 5 fotos."),
             GamePrompt(text: "Send 'Jeg savner dig' til den tredje person i dine kontakter."),
             GamePrompt(text: "Gør dit bedste indtryk af én i rummet."),
@@ -503,7 +499,15 @@ enum GameStrings {
             GamePrompt(text: "Vis gruppen din Spotify Wrapped-topkunstner."),
             GamePrompt(text: "Lad nogen gennemgå din 'Følger'-liste og spørge om hvem som helst."),
             GamePrompt(text: "Ring til den seneste, du sendte en besked til, og syng lykkelig fødselsdag."),
-        ],
-    ]
+        ]
+        default: return []
+        }
+    }
     // swiftlint:enable line_length
+
+    // MARK: - Would You Rather Option Labels
+
+    /// "A" / "B" labels shown on the two option cards in Would You Rather.
+    static var wyrOptionA: String { "A" }
+    static var wyrOptionB: String { "B" }
 }

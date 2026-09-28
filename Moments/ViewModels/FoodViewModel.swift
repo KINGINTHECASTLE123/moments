@@ -14,12 +14,6 @@ final class FoodViewModel {
 
     private func setError(_ message: String) {
         errorMessage = message
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(5))
-            if self.errorMessage == message {
-                self.errorMessage = nil
-            }
-        }
     }
 
     func fetchDishes() async {

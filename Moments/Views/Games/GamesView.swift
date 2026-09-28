@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct GamesView: View {
+    private let bottomContentInset: CGFloat = 96
+
     @Environment(AppLanguage.self) private var appLanguage
     @Environment(\.dismiss) private var dismiss
 
@@ -17,7 +19,7 @@ struct GamesView: View {
 
                     GameSection(title: Strings.gamesDeepPlayful, games: deepGames)
 
-                    Spacer(minLength: 32)
+                    Spacer(minLength: bottomContentInset)
                 }
             }
             .background(MomentsStyle.background)

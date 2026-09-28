@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct CuratedMusicView: View {
+    private let bottomContentInset: CGFloat = 96
+
     @Environment(MusicViewModel.self) private var musicViewModel
     @Environment(AppLanguage.self) private var appLanguage
     @Environment(\.dismiss) private var dismiss
@@ -38,7 +40,6 @@ struct CuratedMusicView: View {
                     )
                     .padding(.horizontal, 24)
                     .padding(.bottom, 28)
-
                 }
 
                 // Tonight's Pick
@@ -57,7 +58,7 @@ struct CuratedMusicView: View {
                 // All Playlists
                 playlistListSection
 
-                Spacer(minLength: 32)
+                Spacer(minLength: bottomContentInset)
             }
             }
             .background(MomentsStyle.background)

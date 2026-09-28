@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct FoodView: View {
+    private let bottomContentInset: CGFloat = 96
+
     @Environment(FoodViewModel.self) private var foodViewModel
     @Environment(AppLanguage.self) private var appLanguage
     @Environment(\.dismiss) private var dismiss
@@ -46,7 +48,7 @@ struct FoodView: View {
                         }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    .padding(.bottom, bottomContentInset)
                 }
             } else if let errorMessage = foodViewModel.errorMessage, foodViewModel.dishes.isEmpty {
                 Spacer()
@@ -97,10 +99,11 @@ struct FoodView: View {
                                 DishCard(dish: dish)
                             }
                             .buttonStyle(.plain)
+                            .contentShape(Rectangle())
                         }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    .padding(.bottom, bottomContentInset)
                 }
                 .refreshable {
                     Haptics.cardSettle()
@@ -157,7 +160,9 @@ struct DishCard: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .contentShape(Rectangle())
     }
 }
 

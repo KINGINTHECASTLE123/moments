@@ -65,28 +65,44 @@ service cloud.firestore {
       data.body.size() <= 1000 &&
       (!('imageURL' in data) || data.imageURL == null || data.imageURL is string) &&
       (!('tag' in data) || data.tag == null || data.tag is string) &&
-      data.likes is int && data.likes >= 0 &&
-      data.commentCount is int && data.commentCount >= 0 &&
-      data.likedByUIDs is list &&
+      (!('likes' in data) || (data.likes is int && data.likes >= 0)) &&
+      (!('commentCount' in data) || (data.commentCount is int && data.commentCount >= 0)) &&
+      (!('likedByUIDs' in data) || data.likedByUIDs is list) &&
       data.createdAt is timestamp;
+    }
+
+    function postLikes(data) {
+      return ('likes' in data && data.likes is int) ? data.likes : 0;
+    }
+
+    function postCommentCount(data) {
+      return ('commentCount' in data && data.commentCount is int) ? data.commentCount : 0;
+    }
+
+    function postLikedByUIDs(data) {
+      return ('likedByUIDs' in data && data.likedByUIDs is list) ? data.likedByUIDs : [];
     }
 
     function isValidComment(data) {
       return data.keys().hasOnly([
         'authorUID',
         'authorUsername',
+        'authorProfileImageURL',
         'body',
         'likes',
+        'likedByUIDs',
         'createdAt'
       ]) &&
       data.authorUID is string &&
       data.authorUsername is string &&
       data.authorUsername.size() > 0 &&
       data.authorUsername.size() <= 30 &&
+      (!('authorProfileImageURL' in data) || data.authorProfileImageURL == null || data.authorProfileImageURL is string) &&
       data.body is string &&
       data.body.size() > 0 &&
       data.body.size() <= 500 &&
-      data.likes is int &&
+      data.likes is int && data.likes >= 0 &&
+      data.likedByUIDs is list &&
       data.createdAt is timestamp;
     }
 
@@ -162,7 +178,11 @@ service cloud.firestore {
 
       allow create: if isSignedIn() &&
         request.resource.data.authorUID == request.auth.uid &&
-        isValidPost(request.resource.data);
+        isValidPost(request.resource.data) &&
+        // Soft rate-limit: reject posts backdated or dated more than 30s in the future.
+        // This doesn't prevent burst writes but blocks trivial timestamp manipulation.
+        request.resource.data.createdAt >= request.time - duration.value(30, 's') &&
+        request.resource.data.createdAt <= request.time + duration.value(30, 's');
 
       allow update: if isSignedIn() &&
         isValidPost(request.resource.data) &&
@@ -204,13 +224,13 @@ service cloud.firestore {
             request.resource.data.body == resource.data.body &&
             request.resource.data.imageURL == resource.data.imageURL &&
             request.resource.data.tag == resource.data.tag &&
-            request.resource.data.likes == resource.data.likes &&
-            request.resource.data.likedByUIDs == resource.data.likedByUIDs &&
+            postLikes(request.resource.data) == postLikes(resource.data) &&
+            postLikedByUIDs(request.resource.data) == postLikedByUIDs(resource.data) &&
             request.resource.data.createdAt == resource.data.createdAt &&
             (
-              request.resource.data.commentCount == resource.data.commentCount + 1 ||
-              (request.resource.data.commentCount == resource.data.commentCount - 1 &&
-               resource.data.commentCount > 0)
+              postCommentCount(request.resource.data) == postCommentCount(resource.data) + 1 ||
+              (postCommentCount(request.resource.data) == postCommentCount(resource.data) - 1 &&
+               postCommentCount(resource.data) > 0)
             )
           )
         );
@@ -222,7 +242,23 @@ service cloud.firestore {
         allow create: if isSignedIn() &&
           request.resource.data.authorUID == request.auth.uid &&
           isValidComment(request.resource.data);
-        allow update: if isSignedIn() && request.auth.uid == resource.data.authorUID && isValidComment(request.resource.data);
+        allow update: if isSignedIn() &&
+          isValidComment(request.resource.data) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedByUIDs']) &&
+          request.resource.data.authorUID == resource.data.authorUID &&
+          request.resource.data.authorUsername == resource.data.authorUsername &&
+          request.resource.data.authorProfileImageURL == resource.data.authorProfileImageURL &&
+          request.resource.data.body == resource.data.body &&
+          request.resource.data.createdAt == resource.data.createdAt &&
+          (
+            (request.resource.data.likes == resource.data.likes + 1 &&
+             request.resource.data.likedByUIDs.hasAll([request.auth.uid]) &&
+             !resource.data.likedByUIDs.hasAll([request.auth.uid]))
+            ||
+            (request.resource.data.likes == resource.data.likes - 1 &&
+             !request.resource.data.likedByUIDs.hasAll([request.auth.uid]) &&
+             resource.data.likedByUIDs.hasAll([request.auth.uid]))
+          );
         allow delete: if isSignedIn() && request.auth.uid == resource.data.authorUID;
       }
     }

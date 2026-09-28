@@ -247,6 +247,8 @@ struct CreateMomentView: View {
 
     // MARK: - Step 3: Name It
 
+    @FocusState private var nameFocused: Bool
+
     private var nameStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
@@ -265,19 +267,23 @@ struct CreateMomentView: View {
                 Text(Strings.createMomentNameLabel)
                     .font(.system(size: 9, weight: .light))
                     .tracking(2)
-                    .foregroundColor(MomentsStyle.secondaryText)
+                    .foregroundColor(nameFocused ? MomentsStyle.primaryText : MomentsStyle.secondaryText)
+                    .animation(.easeInOut(duration: 0.2), value: nameFocused)
 
                 TextField(Strings.createMomentNamePlaceholder, text: $momentTitle)
                     .font(MomentsStyle.systemLight(16))
                     .foregroundColor(MomentsStyle.primaryText)
+                    .focused($nameFocused)
                     .padding(.bottom, 10)
                     .overlay(
                         Rectangle()
-                            .fill(MomentsStyle.border)
-                            .frame(height: 0.5),
+                            .fill(MomentsStyle.primaryText.opacity(nameFocused ? 0.7 : 0.2))
+                            .frame(height: 0.5)
+                            .animation(.easeInOut(duration: 0.2), value: nameFocused),
                         alignment: .bottom
                     )
             }
+            .onAppear { nameFocused = true }
         }
     }
 }
